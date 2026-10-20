@@ -1,0 +1,7 @@
+Seq,Entity,File
+1,ShipTo,ShipTo.csv
+2,Customer,Customer.csv
+3,PartPlant,PartPlant.csv
+4,Part,Part.csv
+5,OrderHed,OrderHed.csv
+6,OrderDtl,OrderDtl.csv
