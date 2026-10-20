@@ -150,6 +150,19 @@ Research date: 2026-10-20. Research method: WebSearch/WebFetch of public pages o
 
 ---
 
+## Phase 2b fix-drill defects
+
+Seeded BAQ defects for the Phase 2b fix drills. The five existing defects are
+not recorded anywhere in this repository. Items 1–5 are placeholders until the
+project owner supplies them; nothing here defines them.
+
+| # | Defect | Fix | Source |
+|---|--------|-----|--------|
+| 1–5 | (existing five: to be listed by the project owner) | — | — |
+| 6 | **Integer division truncation**: a calculated field divides two integers (for example two counts), so 24/28 returns 0. | Cast an operand to DECIMAL before dividing, e.g. `CAST(a AS DECIMAL(7,2)) / CAST(b AS DECIMAL(7,2))`. Guard a zero/NULL denominator with CASE/ISNULL. | M1, B9, B10, B8 |
+
+---
+
 ## Answer (8): Calculated field language and integer division
 
 **Is the expression SQL?** Yes, by every source found. It is written as a

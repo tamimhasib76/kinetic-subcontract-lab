@@ -55,6 +55,13 @@ Research date: 2026-10-20. Research method: WebSearch/WebFetch of public pages o
 | S32 | SSRS - Creating a SubReport from a new Report Data Definition, Step-by-Step | https://www.epiusers.help/t/ssrs-creating-a-subreport-from-a-new-report-data-definition-step-by-step/134855 | 2026-05-20 to 2026-05-21 | none (cloud) |
 | S33 | Add to Order Acknowledgment Query | https://www.epiusers.help/t/add-to-order-acknowledgment-query/49064 | 2018-10-24 (pre-2022) | 10.2.300.0 |
 | S34 | Uploaded SSRS Report Applied to all Custom Report Styles | https://epiusers.help/t/uploaded-ssrs-report-applied-to-all-custom-report-styles/102783 | 2023-05-15 | 2022.2.11 Cloud |
+| S35 | Row Already belongs to another table | https://epiusers.help/t/row-already-belongs-to-another-table/115789 | 2024-06-14 to 2024-07-10 | 2023; 2024.1; 2024.1.8 |
+| S36 | SSRS Invalid Column on Custom ARForm | https://www.epiusers.help/t/ssrs-invalid-column-on-custom-arform/131381 | 2025-12-15 to 2026-01-16 | 2025.2.7 (Public Cloud) |
+
+## Naming used in this lab
+
+- The sales order acknowledgment report is **OrderAck**, not "SOAck". Sources call it the "OrderAck report" (S1), and a custom copy was named `TSGOrderAck` (S24). The exact base RDD ID on a client release is still checked on the first ticket (see `needs-confirmation.md`).
+- The base AR invoice style (**AR_Form**) uses the **ARInvoice** RDD in 2024.1 and later. It was observed on 2024.1.12 (S18). One poster says ARInvoice was already the RDD in 2023, with `ARForm` used by the CSF and eInvoice styles (S35). Which release first switched is therefore CONFLICTING (S18 vs S35). On 2025.2.7 cloud, posters disagreed on which RDD a downloaded copy pointed to (S36). Rule: always open the base style and read its data definition before duplicating anything.
 
 ---
 
@@ -70,7 +77,7 @@ Research date: 2026-10-20. Research method: WebSearch/WebFetch of public pages o
 | 1.6 | Copying the standard Pack Slip **RDD** to a new name failed in a 2025.2.4 Pilot; a ticket was open. | Report Data Definition → copy | — | CONFIRMED (forum, single report) | S8 |
 | 1.7 | Fields and default values in the Copy Report Style dialog (new style number, description). | — | — | UNVERIFIED | — |
 | 1.8 | Assign the copied (duplicated) RDD to the copied style. | Report Style → style detail → data definition field | — | CONFIRMED (forum) | S15 |
-| 1.9 | Check which RDD the base style actually uses before duplicating it. In 2024.1.12 the base AR invoice style used the `ARInvoice` RDD, not `ARForm`. | Report Style Maintenance → style → data definition | `ARInvoice` | CONFIRMED (forum) | S18 |
+| 1.9 | Check which RDD the base style actually uses before duplicating it. The base AR_Form style uses `ARInvoice`, not `ARForm` (seen on 2024.1.12, S18). Per S35 this was already true in 2023, and CSF/eInvoice styles use `ARForm`. | Report Style Maintenance → style → data definition | `ARInvoice` | CONFIRMED (forum) that the 2024.1+ base style uses ARInvoice; first release CONFLICTING | S18, S35 |
 
 ## 2. Report Location
 
@@ -198,7 +205,24 @@ Prerequisites (CONFIRMED, forum, 2025.2, S1):
 | 7.16 | **Action > Upload SSRS report**. Select the top-level folder; do not drill down. | CONFIRMED (forum) | S3, S6 |
 | 7.17 | The Classic screen zips behind the scenes. | CONFIRMED (forum) | S2 |
 
-### 7c. Folder rules summary
+### 7c. Verify-after-save rule (lab rule)
+
+**After every Publish (section 6) or zip upload (section 7a/7b), download the
+report again from Report Style and confirm the change is in the file before
+you call the ticket done.**
+
+Why: whether Publish saves is CONFLICTING (6.9). Uploads have reported success
+while the old RDL stayed in place (S8, S11, and S1's Quote form case, where the
+direct RDL download showed the change missing). The re-download check itself
+was used by posters (S1, S9). Making it a mandatory step is a lab rule, not
+Epicor guidance.
+
+1. Report Style → copied style → three-dot menu → **Download SSRS Report** (S32).
+2. Extract and open the `.rdl` named in Report Location.
+3. Confirm the edited element or query text is present.
+4. If it is missing, upload again through Report Style, using Classic if errors are hidden (7.9). Then repeat steps 1–3.
+
+### 7d. Folder rules summary
 
 - Path must match the style's Report Location, and the file name must match. CONFIRMED (S5, S27).
 - One path per style when the RDLs differ. CONFIRMED (S34).
@@ -265,13 +289,15 @@ Prerequisites (CONFIRMED, forum, 2025.2, S1):
   - In 2021, cloud upload of a re-saved 2016 file failed with "invalid target namespace ... 2016/01/reportdefinition ... cannot be upgraded" (10.2.200.6). CONFIRMED (forum, 2021) — S30.
   - Whether that still applies to Kinetic 2022+ cloud: UNVERIFIED.
 
-### (5) PackSlip, SOAck and ARForm
+### (5) PackSlip, OrderAck and ARForm
+
+The question asked for "SOAck". This lab uses the name **OrderAck** (see "Naming used in this lab").
 
 | Form | RDD name | Tables / relationships seen | Main dataset query seen | Label | Source |
 |------|----------|-----------------------------|-------------------------|-------|--------|
 | PackSlip | "standard Pack Slip RDD" (exact ID UNVERIFIED) | ShipHead → ShipDtl; RptLabels; Company, OrderHed and Carrier added in a custom version | `FROM ShipHead_" + Parameters!TableGuid.Value + " T1 LEFT OUTER JOIN ShipDtl_" + Parameters!TableGuid.Value + " T2 ON T1.Company = T2.Company AND T1.PackNum = T2.PackNum LEFT OUTER JOIN RptLabels_" + Parameters!TableGuid.Value + " T3 ON T1.RptLanguageID = T3.RptLanguageID` | CONFIRMED (forum, 2023; this is a **customized** query, so whether the base query is identical is UNVERIFIED) | S19, S8 |
-| SOAck | "SOAck" as an RDD ID: UNVERIFIED. Sources use OrderAck: "OrderAck report" (S1); custom copy `TSGOrderAck` → `TSGOrderAckC` (S24). Base ID `OrderAck`: UNVERIFIED. | OrderHed aliased `T1`; a dataset named `OrderHed` | Full query text: UNVERIFIED (screenshot only in S33) | partial CONFIRMED (forum) | S1, S24, S33 |
-| ARForm | `ARForm`; in 2024.1.12 the base AR invoice style uses `ARInvoice` | InvcHead (T1), InvcDtl (T2) as main line table, ShipTo (T12), plus Customer, InvcMisc, InvcChrg, RptLabels, BankAcct, FSCallDt, FSCallMt, FSContDt, FSAExtData, ShipToCust; relationship example `InvcDtlShipTo` | Dataset named `ARForm`. Seen fragment: `LEFT OUTER JOIN ShipTo_" + Parameters!TableGuid.Value + " T12 ON T2.Company = T12.Company AND T2.ShipToCustNum = T12.CustNum AND T2.ShipToNum = T12.ShipToNum`. Full query UNVERIFIED. | CONFIRMED (forum) for listed items | S17, S18 |
+| OrderAck | Report name OrderAck (S1); a custom copy was `TSGOrderAck` → `TSGOrderAckC` (S24). That the base RDD ID is exactly `OrderAck` is UNVERIFIED. | OrderHed aliased `T1`; a dataset named `OrderHed` | Full query text: UNVERIFIED (screenshot only in S33) | partial CONFIRMED (forum) | S1, S24, S33 |
+| ARForm | `ARForm` (CSF/eInvoice styles per S35). In 2024.1+ the base AR_Form style uses `ARInvoice` (seen 2024.1.12, S18; already in 2023 per S35) | InvcHead (T1), InvcDtl (T2) as main line table, ShipTo (T12), plus Customer, InvcMisc, InvcChrg, RptLabels, BankAcct, FSCallDt, FSCallMt, FSContDt, FSAExtData, ShipToCust; relationship example `InvcDtlShipTo` | Dataset named `ARForm`. Seen fragment: `LEFT OUTER JOIN ShipTo_" + Parameters!TableGuid.Value + " T12 ON T2.Company = T12.Company AND T2.ShipToCustNum = T12.CustNum AND T2.ShipToNum = T12.ShipToNum`. Full query UNVERIFIED. | CONFIRMED (forum) for listed items | S17, S18 |
 
 - Copying `ARForm` when the base style uses `ARInvoice` caused "Invalid column name 'Calc_TrackByAttribute'". CONFIRMED (forum, 2024.1.12) — S18.
 - Complete relationship lists for all three RDDs: UNVERIFIED.
@@ -287,6 +313,7 @@ See section 7. Short version, all CONFIRMED from forum posts unless marked:
 6. Three-dot menu → **Upload SSRS Report** (S32).
 7. Check errors in Classic Report Style (S6).
 8. Verify with **Generate Form** (S32).
+9. Download again from Report Style and confirm the change is in the file (lab rule, section 7c).
 
 Reliability on 2025.2 cloud: CONFLICTING (S8).
 
