@@ -1,0 +1,336 @@
+{
+  "rddId": "OrderAck",
+  "reportType": "OrderAck",
+  "description": "Sales Order Acknowledgment Report Data Definition (Base RDD before R3 lab modifications)",
+  "citations": [
+    "docs/reference/01-ssrs-forms.md Explicit Answer 1 & 5 [S13, S14, S19, S1, S24, S33]",
+    "docs/reference/01-ssrs-forms.md §3.1-3.10 & Explicit Answer 2 [S12, S13, S14, S15, S16, S25]",
+    "docs/reference/01-ssrs-forms.md §8.1-8.2 & §8.5 (Never click Sync Dataset [S24, S25])",
+    "docs/reference/decisions.md (Approved Defaults 17, 18, 19, 20)"
+  ],
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor: Exact base column inclusion/exclusion sets and RptLabels key names are lab defaults (see docs/reference/needs-confirmation.md Q7, Q10).",
+    "Lab design (Approved Default 18): Linked field staged column naming follows <LinkKey>_<Field> (PartNum_SteelGauge_c and PartNum_PPAP_c on OrderDtl).",
+    "Lab design (Approved Default 20): Column exclusions are persisted in ErpReporting.dbo.RddColumn (Exclude = 1/0) and enforced dynamically by dbo.usp_StageEpicorReport on subsequent staging runs."
+  ],
+  "tables": [
+    {
+      "tableName": "RptLabels",
+      "schemaName": "dbo",
+      "tableType": "System",
+      "description": "Report labels staging table for localized field headers [S19].",
+      "banner": "Default chosen for the lab, not confirmed against Epicor: Specific label column names in RptLabels_<GUID> are lab defaults.",
+      "columns": [
+        { "columnName": "RptLanguageID", "exclude": false },
+        { "columnName": "LblOrderAckTitle", "exclude": false },
+        { "columnName": "LblOrderNum", "exclude": false },
+        { "columnName": "LblOrderDate", "exclude": false },
+        { "columnName": "LblPONum", "exclude": false },
+        { "columnName": "LblNeedByDate", "exclude": false },
+        { "columnName": "LblPartNum", "exclude": false },
+        { "columnName": "LblRevisionNum", "exclude": false },
+        { "columnName": "LblLineDesc", "exclude": false },
+        { "columnName": "LblOrderQty", "exclude": false },
+        { "columnName": "LblUnitPrice", "exclude": false },
+        { "columnName": "LblExtWeight", "exclude": false },
+        { "columnName": "LblRelNum", "exclude": false }
+      ],
+      "includedColumns": [
+        "RptLanguageID",
+        "LblOrderAckTitle",
+        "LblOrderNum",
+        "LblOrderDate",
+        "LblPONum",
+        "LblNeedByDate",
+        "LblPartNum",
+        "LblRevisionNum",
+        "LblLineDesc",
+        "LblOrderQty",
+        "LblUnitPrice",
+        "LblExtWeight",
+        "LblRelNum"
+      ],
+      "excludedColumns": []
+    },
+    {
+      "tableName": "Company",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Operating company header information.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "Name", "exclude": false },
+        { "columnName": "Address1", "exclude": false },
+        { "columnName": "Address2", "exclude": false },
+        { "columnName": "City", "exclude": false },
+        { "columnName": "State", "exclude": false },
+        { "columnName": "Zip", "exclude": false },
+        { "columnName": "Country", "exclude": false },
+        { "columnName": "PhoneNum", "exclude": false },
+        { "columnName": "FiscalCalendarID", "exclude": true }
+      ],
+      "includedColumns": [
+        "Company",
+        "Name",
+        "Address1",
+        "Address2",
+        "City",
+        "State",
+        "Zip",
+        "Country",
+        "PhoneNum"
+      ],
+      "excludedColumns": [
+        "FiscalCalendarID"
+      ]
+    },
+    {
+      "tableName": "OrderHed",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Sales order header table.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "OrderNum", "exclude": false },
+        { "columnName": "CustNum", "exclude": false },
+        { "columnName": "PONum", "exclude": false },
+        { "columnName": "OrderDate", "exclude": false },
+        { "columnName": "NeedByDate", "exclude": false },
+        { "columnName": "RequestDate", "exclude": false },
+        { "columnName": "TermsCode", "exclude": false },
+        { "columnName": "ShipToNum", "exclude": false },
+        { "columnName": "OpenOrder", "exclude": false },
+        { "columnName": "VoidOrder", "exclude": true },
+        { "columnName": "OrderAmt", "exclude": false },
+        { "columnName": "RptLanguageID", "exclude": false },
+        { "columnName": "ProjManager_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "OrderNum",
+        "CustNum",
+        "PONum",
+        "OrderDate",
+        "NeedByDate",
+        "RequestDate",
+        "TermsCode",
+        "ShipToNum",
+        "OpenOrder",
+        "OrderAmt",
+        "RptLanguageID",
+        "ProjManager_c"
+      ],
+      "excludedColumns": [
+        "VoidOrder"
+      ]
+    },
+    {
+      "tableName": "OrderDtl",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Sales order detail lines. RevisionNum and ExtWeight are excluded in the base RDD and un-excluded in Lab R3.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "OrderNum", "exclude": false },
+        { "columnName": "OrderLine", "exclude": false },
+        { "columnName": "PartNum", "exclude": false },
+        { "columnName": "LineDesc", "exclude": false },
+        { "columnName": "OrderQty", "exclude": false },
+        { "columnName": "SellingQuantity", "exclude": false },
+        { "columnName": "SalesUM", "exclude": false },
+        { "columnName": "UnitPrice", "exclude": false },
+        { "columnName": "DocUnitPrice", "exclude": false },
+        { "columnName": "DspUnitPrice", "exclude": false },
+        { "columnName": "OpenLine", "exclude": false },
+        { "columnName": "VoidLine", "exclude": true },
+        { "columnName": "NeedByDate", "exclude": false },
+        { "columnName": "RequestDate", "exclude": false },
+        { "columnName": "RevisionNum", "exclude": true },
+        { "columnName": "ExtWeight", "exclude": true },
+        { "columnName": "FabricationNotes_c", "exclude": false },
+        { "columnName": "PartNum_SteelGauge_c", "exclude": false },
+        { "columnName": "PartNum_PPAP_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "OrderNum",
+        "OrderLine",
+        "PartNum",
+        "LineDesc",
+        "OrderQty",
+        "SellingQuantity",
+        "SalesUM",
+        "UnitPrice",
+        "DocUnitPrice",
+        "DspUnitPrice",
+        "OpenLine",
+        "NeedByDate",
+        "RequestDate",
+        "FabricationNotes_c",
+        "PartNum_SteelGauge_c",
+        "PartNum_PPAP_c"
+      ],
+      "excludedColumns": [
+        "VoidLine",
+        "RevisionNum",
+        "ExtWeight"
+      ],
+      "linkedTables": [
+        {
+          "linkKey": "PartNum",
+          "targetSchema": "Erp",
+          "targetTable": "Part",
+          "joinFields": [
+            { "parentField": "Company", "childField": "Company" },
+            { "parentField": "PartNum", "childField": "PartNum" }
+          ],
+          "descriptionPickedFields": [
+            "SteelGauge_c",
+            "PPAP_c"
+          ],
+          "stagedColumns": [
+            {
+              "sourceColumn": "SteelGauge_c",
+              "stagedColumnName": "PartNum_SteelGauge_c",
+              "stagedTable": "OrderDtl_<GUID>",
+              "exclude": false,
+              "citation": "docs/reference/01-ssrs-forms.md §3.8-3.10 & Explicit Answer 2 [S12, S13, S16]; Approved Default 18"
+            },
+            {
+              "sourceColumn": "PPAP_c",
+              "stagedColumnName": "PartNum_PPAP_c",
+              "stagedTable": "OrderDtl_<GUID>",
+              "exclude": false,
+              "citation": "docs/reference/01-ssrs-forms.md §3.8-3.10 & Explicit Answer 2 [S12, S13, S16]; Approved Default 18"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tableName": "OrderRel",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Sales order delivery releases.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "OrderNum", "exclude": false },
+        { "columnName": "OrderLine", "exclude": false },
+        { "columnName": "OrderRelNum", "exclude": false },
+        { "columnName": "OurReqQty", "exclude": false },
+        { "columnName": "SellingReqQty", "exclude": false },
+        { "columnName": "ShipToNum", "exclude": false },
+        { "columnName": "ShipToCustNum", "exclude": false },
+        { "columnName": "NeedByDate", "exclude": false },
+        { "columnName": "ReqDate", "exclude": false },
+        { "columnName": "OpenRelease", "exclude": false },
+        { "columnName": "FirmRelease", "exclude": false },
+        { "columnName": "Plant", "exclude": false },
+        { "columnName": "WarehouseCode", "exclude": false },
+        { "columnName": "RelHoldReason_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "OrderNum",
+        "OrderLine",
+        "OrderRelNum",
+        "OurReqQty",
+        "SellingReqQty",
+        "ShipToNum",
+        "ShipToCustNum",
+        "NeedByDate",
+        "ReqDate",
+        "OpenRelease",
+        "FirmRelease",
+        "Plant",
+        "WarehouseCode",
+        "RelHoldReason_c"
+      ],
+      "excludedColumns": []
+    },
+    {
+      "tableName": "Customer",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Sold-to customer master record.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "CustNum", "exclude": false },
+        { "columnName": "CustID", "exclude": false },
+        { "columnName": "Name", "exclude": false },
+        { "columnName": "Address1", "exclude": false },
+        { "columnName": "Address2", "exclude": false },
+        { "columnName": "City", "exclude": false },
+        { "columnName": "State", "exclude": false },
+        { "columnName": "Zip", "exclude": false },
+        { "columnName": "Country", "exclude": false },
+        { "columnName": "PhoneNum", "exclude": false },
+        { "columnName": "TermsCode", "exclude": false },
+        { "columnName": "TerritoryID", "exclude": true },
+        { "columnName": "CustType", "exclude": true },
+        { "columnName": "AccountManager_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "CustNum",
+        "CustID",
+        "Name",
+        "Address1",
+        "Address2",
+        "City",
+        "State",
+        "Zip",
+        "Country",
+        "PhoneNum",
+        "TermsCode",
+        "AccountManager_c"
+      ],
+      "excludedColumns": [
+        "TerritoryID",
+        "CustType"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipName": "CompanyToOrderHed",
+      "parentTable": "Company",
+      "childTable": "OrderHed",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" }
+      ]
+    },
+    {
+      "relationshipName": "OrderHedToOrderDtl",
+      "parentTable": "OrderHed",
+      "childTable": "OrderDtl",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" },
+        { "parentField": "OrderNum", "childField": "OrderNum" }
+      ]
+    },
+    {
+      "relationshipName": "OrderDtlToOrderRel",
+      "parentTable": "OrderDtl",
+      "childTable": "OrderRel",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" },
+        { "parentField": "OrderNum", "childField": "OrderNum" },
+        { "parentField": "OrderLine", "childField": "OrderLine" }
+      ]
+    },
+    {
+      "relationshipName": "OrderHedToCustomer",
+      "parentTable": "OrderHed",
+      "childTable": "Customer",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" },
+        { "parentField": "CustNum", "childField": "CustNum" }
+      ]
+    }
+  ]
+}

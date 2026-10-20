@@ -1,0 +1,300 @@
+{
+  "rddId": "ARForm",
+  "reportType": "ARForm",
+  "description": "Accounts Receivable Invoice Form Report Data Definition (Base RDD before R4 lab modifications)",
+  "citations": [
+    "docs/reference/01-ssrs-forms.md Explicit Answer 1 & 5 [S13, S14, S19, S17, S18]",
+    "docs/reference/01-ssrs-forms.md §3.12-3.14 (ARForm ShipTo relationship InvcDtlShipTo [S15, S13, S17])",
+    "docs/reference/decisions.md (Approved Defaults 17, 18, 19, 20; Standing Question e)"
+  ],
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor: Exact base column inclusion/exclusion sets and RptLabels key names are lab defaults (see docs/reference/needs-confirmation.md Q7, Q10).",
+    "Standing Question (e) per-client check: Remit-to address and Ship-to PO source columns on ARForm must be verified per client in Field Help -> Technical Details before building a custom RDD; in this lab, RemitToName/RemitToAddress1/RemitToCity/RemitToState/RemitToZip and UD column ShipToPONum_c (Approved Default 19) are placed on Erp.InvcHead with Exclude = true in the base RDD.",
+    "Lab design (Approved Default 20): Column exclusions are persisted in ErpReporting.dbo.RddColumn (Exclude = 1/0) and enforced dynamically by dbo.usp_StageEpicorReport on subsequent staging runs."
+  ],
+  "tables": [
+    {
+      "tableName": "RptLabels",
+      "schemaName": "dbo",
+      "tableType": "System",
+      "description": "Report labels staging table for localized field headers [S19].",
+      "banner": "Default chosen for the lab, not confirmed against Epicor: Specific label column names in RptLabels_<GUID> are lab defaults.",
+      "columns": [
+        { "columnName": "RptLanguageID", "exclude": false },
+        { "columnName": "LblInvoiceTitle", "exclude": false },
+        { "columnName": "LblInvoiceNum", "exclude": false },
+        { "columnName": "LblInvoiceDate", "exclude": false },
+        { "columnName": "LblOrderNum", "exclude": false },
+        { "columnName": "LblTermsCode", "exclude": false },
+        { "columnName": "LblRemitTo", "exclude": false },
+        { "columnName": "LblShipToPO", "exclude": false },
+        { "columnName": "LblPartNum", "exclude": false },
+        { "columnName": "LblLineDesc", "exclude": false },
+        { "columnName": "LblShipQty", "exclude": false },
+        { "columnName": "LblUnitPrice", "exclude": false },
+        { "columnName": "LblExtPrice", "exclude": false }
+      ],
+      "includedColumns": [
+        "RptLanguageID",
+        "LblInvoiceTitle",
+        "LblInvoiceNum",
+        "LblInvoiceDate",
+        "LblOrderNum",
+        "LblTermsCode",
+        "LblRemitTo",
+        "LblShipToPO",
+        "LblPartNum",
+        "LblLineDesc",
+        "LblShipQty",
+        "LblUnitPrice",
+        "LblExtPrice"
+      ],
+      "excludedColumns": []
+    },
+    {
+      "tableName": "Company",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Operating company header information.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "Name", "exclude": false },
+        { "columnName": "Address1", "exclude": false },
+        { "columnName": "Address2", "exclude": false },
+        { "columnName": "City", "exclude": false },
+        { "columnName": "State", "exclude": false },
+        { "columnName": "Zip", "exclude": false },
+        { "columnName": "Country", "exclude": false },
+        { "columnName": "PhoneNum", "exclude": false },
+        { "columnName": "FiscalCalendarID", "exclude": true }
+      ],
+      "includedColumns": [
+        "Company",
+        "Name",
+        "Address1",
+        "Address2",
+        "City",
+        "State",
+        "Zip",
+        "Country",
+        "PhoneNum"
+      ],
+      "excludedColumns": [
+        "FiscalCalendarID"
+      ]
+    },
+    {
+      "tableName": "InvcHead",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "AR Invoice header table. Remit-to columns and ShipToPONum_c are excluded in the base RDD and un-excluded in Lab R4.",
+      "banner": "Standing Question (e) per-client check: RemitToName, RemitToAddress1, RemitToCity, RemitToState, RemitToZip, and ShipToPONum_c are placed on InvcHead for the lab; verify exact table/column per client via Field Help -> Technical Details.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "InvoiceNum", "exclude": false },
+        { "columnName": "CustNum", "exclude": false },
+        { "columnName": "InvoiceDate", "exclude": false },
+        { "columnName": "OrderNum", "exclude": false },
+        { "columnName": "InvoiceType", "exclude": false },
+        { "columnName": "InvoiceAmt", "exclude": false },
+        { "columnName": "TermsCode", "exclude": false },
+        { "columnName": "OpenInvoice", "exclude": false },
+        { "columnName": "RptLanguageID", "exclude": false },
+        { "columnName": "RemitToName", "exclude": true },
+        { "columnName": "RemitToAddress1", "exclude": true },
+        { "columnName": "RemitToCity", "exclude": true },
+        { "columnName": "RemitToState", "exclude": true },
+        { "columnName": "RemitToZip", "exclude": true },
+        { "columnName": "ShipToPONum_c", "exclude": true },
+        { "columnName": "BillingContact_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "InvoiceNum",
+        "CustNum",
+        "InvoiceDate",
+        "OrderNum",
+        "InvoiceType",
+        "InvoiceAmt",
+        "TermsCode",
+        "OpenInvoice",
+        "RptLanguageID",
+        "BillingContact_c"
+      ],
+      "excludedColumns": [
+        "RemitToName",
+        "RemitToAddress1",
+        "RemitToCity",
+        "RemitToState",
+        "RemitToZip",
+        "ShipToPONum_c"
+      ]
+    },
+    {
+      "tableName": "InvcDtl",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "AR Invoice line detail table.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "InvoiceNum", "exclude": false },
+        { "columnName": "InvoiceLine", "exclude": false },
+        { "columnName": "OrderNum", "exclude": false },
+        { "columnName": "OrderLine", "exclude": false },
+        { "columnName": "OrderRelNum", "exclude": false },
+        { "columnName": "PackNum", "exclude": false },
+        { "columnName": "PackLine", "exclude": false },
+        { "columnName": "PartNum", "exclude": false },
+        { "columnName": "LineDesc", "exclude": false },
+        { "columnName": "SellingShipQty", "exclude": false },
+        { "columnName": "UnitPrice", "exclude": false },
+        { "columnName": "DocUnitPrice", "exclude": false },
+        { "columnName": "ExtPrice", "exclude": false },
+        { "columnName": "ShipToCustNum", "exclude": false },
+        { "columnName": "ShipToNum", "exclude": false },
+        { "columnName": "GLAnalysisCode_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "InvoiceNum",
+        "InvoiceLine",
+        "OrderNum",
+        "OrderLine",
+        "OrderRelNum",
+        "PackNum",
+        "PackLine",
+        "PartNum",
+        "LineDesc",
+        "SellingShipQty",
+        "UnitPrice",
+        "DocUnitPrice",
+        "ExtPrice",
+        "ShipToCustNum",
+        "ShipToNum",
+        "GLAnalysisCode_c"
+      ],
+      "excludedColumns": []
+    },
+    {
+      "tableName": "Customer",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Bill-to customer master record.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "CustNum", "exclude": false },
+        { "columnName": "CustID", "exclude": false },
+        { "columnName": "Name", "exclude": false },
+        { "columnName": "Address1", "exclude": false },
+        { "columnName": "Address2", "exclude": false },
+        { "columnName": "City", "exclude": false },
+        { "columnName": "State", "exclude": false },
+        { "columnName": "Zip", "exclude": false },
+        { "columnName": "Country", "exclude": false },
+        { "columnName": "PhoneNum", "exclude": false },
+        { "columnName": "TermsCode", "exclude": false },
+        { "columnName": "TerritoryID", "exclude": true },
+        { "columnName": "CustType", "exclude": true },
+        { "columnName": "AccountManager_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "CustNum",
+        "CustID",
+        "Name",
+        "Address1",
+        "Address2",
+        "City",
+        "State",
+        "Zip",
+        "Country",
+        "PhoneNum",
+        "TermsCode",
+        "AccountManager_c"
+      ],
+      "excludedColumns": [
+        "TerritoryID",
+        "CustType"
+      ]
+    },
+    {
+      "tableName": "ShipTo",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Ship-to address record. Linked in Lab R4 by adding the InvcDtlShipTo relationship (InvcDtl -> ShipTo on Company, ShipToCustNum -> CustNum, ShipToNum) [S17].",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "CustNum", "exclude": false },
+        { "columnName": "ShipToNum", "exclude": false },
+        { "columnName": "Name", "exclude": false },
+        { "columnName": "Address1", "exclude": false },
+        { "columnName": "Address2", "exclude": false },
+        { "columnName": "City", "exclude": false },
+        { "columnName": "State", "exclude": false },
+        { "columnName": "Zip", "exclude": false },
+        { "columnName": "Country", "exclude": false },
+        { "columnName": "TerritoryID", "exclude": true },
+        { "columnName": "SpecialInstructions_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "CustNum",
+        "ShipToNum",
+        "Name",
+        "Address1",
+        "Address2",
+        "City",
+        "State",
+        "Zip",
+        "Country",
+        "SpecialInstructions_c"
+      ],
+      "excludedColumns": [
+        "TerritoryID"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipName": "CompanyToInvcHead",
+      "parentTable": "Company",
+      "childTable": "InvcHead",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" }
+      ]
+    },
+    {
+      "relationshipName": "InvcHeadToInvcDtl",
+      "parentTable": "InvcHead",
+      "childTable": "InvcDtl",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" },
+        { "parentField": "InvoiceNum", "childField": "InvoiceNum" }
+      ]
+    },
+    {
+      "relationshipName": "InvcHeadToCustomer",
+      "parentTable": "InvcHead",
+      "childTable": "Customer",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" },
+        { "parentField": "CustNum", "childField": "CustNum" }
+      ]
+    }
+  ],
+  "labR4RelationshipToAdd": {
+    "relationshipName": "InvcDtlShipTo",
+    "parentTable": "InvcDtl",
+    "childTable": "ShipTo",
+    "relationType": "Output",
+    "citation": "docs/reference/01-ssrs-forms.md §3.14 [S17] (learner adds InvcDtlShipTo in Lab R4)",
+    "fields": [
+      { "parentField": "Company", "childField": "Company" },
+      { "parentField": "ShipToCustNum", "childField": "CustNum" },
+      { "parentField": "ShipToNum", "childField": "ShipToNum" }
+    ]
+  }
+}

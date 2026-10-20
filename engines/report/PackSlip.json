@@ -1,0 +1,308 @@
+{
+  "rddId": "PackSlip",
+  "reportType": "PackSlip",
+  "description": "Packing Slip Report Data Definition (Base RDD before R1/R2/R6 lab modifications)",
+  "citations": [
+    "docs/reference/01-ssrs-forms.md Explicit Answer 1 & 5 [S13, S14, S19, S8]",
+    "docs/reference/01-ssrs-forms.md §3.1-3.10 & Explicit Answer 2 [S12, S13, S14, S15, S16, S25]",
+    "docs/reference/decisions.md (Approved Defaults 17, 18, 19, 20)"
+  ],
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor: Exact base column inclusion/exclusion sets and RptLabels key names are lab defaults (see docs/reference/needs-confirmation.md Q7, Q10).",
+    "Lab design (Approved Default 18): Linked field staged column naming follows <LinkKey>_<Field> (OrderNum_ProjManager_c on ShipDtl).",
+    "Lab design (Approved Default 20): Column exclusions are persisted in ErpReporting.dbo.RddColumn (Exclude = 1/0) and enforced dynamically by dbo.usp_StageEpicorReport on subsequent staging runs."
+  ],
+  "tables": [
+    {
+      "tableName": "RptLabels",
+      "schemaName": "dbo",
+      "tableType": "System",
+      "description": "Report labels staging table for localized field headers [S19].",
+      "banner": "Default chosen for the lab, not confirmed against Epicor: Specific label column names in RptLabels_<GUID> are lab defaults.",
+      "columns": [
+        { "columnName": "RptLanguageID", "exclude": false },
+        { "columnName": "LblPackSlipTitle", "exclude": false },
+        { "columnName": "LblPackNum", "exclude": false },
+        { "columnName": "LblShipDate", "exclude": false },
+        { "columnName": "LblCustNum", "exclude": false },
+        { "columnName": "LblTrackingNumber", "exclude": false },
+        { "columnName": "LblPartNum", "exclude": false },
+        { "columnName": "LblLineDesc", "exclude": false },
+        { "columnName": "LblCustPartNum", "exclude": false },
+        { "columnName": "LblShipQty", "exclude": false },
+        { "columnName": "LblProjManager", "exclude": false }
+      ],
+      "includedColumns": [
+        "RptLanguageID",
+        "LblPackSlipTitle",
+        "LblPackNum",
+        "LblShipDate",
+        "LblCustNum",
+        "LblTrackingNumber",
+        "LblPartNum",
+        "LblLineDesc",
+        "LblCustPartNum",
+        "LblShipQty",
+        "LblProjManager"
+      ],
+      "excludedColumns": []
+    },
+    {
+      "tableName": "Company",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Operating company header information.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "Name", "exclude": false },
+        { "columnName": "Address1", "exclude": false },
+        { "columnName": "Address2", "exclude": false },
+        { "columnName": "City", "exclude": false },
+        { "columnName": "State", "exclude": false },
+        { "columnName": "Zip", "exclude": false },
+        { "columnName": "Country", "exclude": false },
+        { "columnName": "PhoneNum", "exclude": false },
+        { "columnName": "FiscalCalendarID", "exclude": true }
+      ],
+      "includedColumns": [
+        "Company",
+        "Name",
+        "Address1",
+        "Address2",
+        "City",
+        "State",
+        "Zip",
+        "Country",
+        "PhoneNum"
+      ],
+      "excludedColumns": [
+        "FiscalCalendarID"
+      ]
+    },
+    {
+      "tableName": "ShipHead",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Shipment pack header table.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "PackNum", "exclude": false },
+        { "columnName": "CustNum", "exclude": false },
+        { "columnName": "ShipDate", "exclude": false },
+        { "columnName": "ShipToNum", "exclude": false },
+        { "columnName": "ShipToCustNum", "exclude": false },
+        { "columnName": "ShipStatus", "exclude": false },
+        { "columnName": "TrackingNumber", "exclude": false },
+        { "columnName": "ShipViaCode", "exclude": false },
+        { "columnName": "Weight", "exclude": true },
+        { "columnName": "RptLanguageID", "exclude": false },
+        { "columnName": "CarrierTrackingUrl_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "PackNum",
+        "CustNum",
+        "ShipDate",
+        "ShipToNum",
+        "ShipToCustNum",
+        "ShipStatus",
+        "TrackingNumber",
+        "ShipViaCode",
+        "RptLanguageID",
+        "CarrierTrackingUrl_c"
+      ],
+      "excludedColumns": [
+        "Weight"
+      ]
+    },
+    {
+      "tableName": "ShipDtl",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Shipment pack detail lines. CustPartNum is excluded in the base RDD (un-excluded in Lab R1). OrderNum_ProjManager_c is excluded in the base RDD (un-excluded in Lab R2 via Linked Tables).",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "PackNum", "exclude": false },
+        { "columnName": "PackLine", "exclude": false },
+        { "columnName": "OrderNum", "exclude": false },
+        { "columnName": "OrderLine", "exclude": false },
+        { "columnName": "OrderRelNum", "exclude": false },
+        { "columnName": "PartNum", "exclude": false },
+        { "columnName": "LineDesc", "exclude": false },
+        { "columnName": "OurInventoryShipQty", "exclude": false },
+        { "columnName": "SellingShippedQty", "exclude": false },
+        { "columnName": "Packages", "exclude": false },
+        { "columnName": "IUM", "exclude": false },
+        { "columnName": "SalesUM", "exclude": false },
+        { "columnName": "CustPartNum", "exclude": true },
+        { "columnName": "HeatNumber_c", "exclude": false },
+        { "columnName": "CertificateOfConformance_c", "exclude": false },
+        { "columnName": "OrderNum_ProjManager_c", "exclude": true }
+      ],
+      "includedColumns": [
+        "Company",
+        "PackNum",
+        "PackLine",
+        "OrderNum",
+        "OrderLine",
+        "OrderRelNum",
+        "PartNum",
+        "LineDesc",
+        "OurInventoryShipQty",
+        "SellingShippedQty",
+        "Packages",
+        "IUM",
+        "SalesUM",
+        "HeatNumber_c",
+        "CertificateOfConformance_c"
+      ],
+      "excludedColumns": [
+        "CustPartNum",
+        "OrderNum_ProjManager_c"
+      ],
+      "linkedTables": [
+        {
+          "linkKey": "OrderNum",
+          "targetSchema": "Erp",
+          "targetTable": "OrderHed",
+          "joinFields": [
+            { "parentField": "Company", "childField": "Company" },
+            { "parentField": "OrderNum", "childField": "OrderNum" }
+          ],
+          "descriptionPickedFields": [
+            "ProjManager_c"
+          ],
+          "stagedColumns": [
+            {
+              "sourceColumn": "ProjManager_c",
+              "stagedColumnName": "OrderNum_ProjManager_c",
+              "stagedTable": "ShipDtl_<GUID>",
+              "exclude": true,
+              "citation": "docs/reference/01-ssrs-forms.md §3.8-3.10 & Explicit Answer 2 [S12, S13, S16]; Approved Default 18"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tableName": "Customer",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Sold-to customer master record.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "CustNum", "exclude": false },
+        { "columnName": "CustID", "exclude": false },
+        { "columnName": "Name", "exclude": false },
+        { "columnName": "Address1", "exclude": false },
+        { "columnName": "Address2", "exclude": false },
+        { "columnName": "City", "exclude": false },
+        { "columnName": "State", "exclude": false },
+        { "columnName": "Zip", "exclude": false },
+        { "columnName": "Country", "exclude": false },
+        { "columnName": "PhoneNum", "exclude": false },
+        { "columnName": "TermsCode", "exclude": false },
+        { "columnName": "TerritoryID", "exclude": true },
+        { "columnName": "CustType", "exclude": true },
+        { "columnName": "AccountManager_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "CustNum",
+        "CustID",
+        "Name",
+        "Address1",
+        "Address2",
+        "City",
+        "State",
+        "Zip",
+        "Country",
+        "PhoneNum",
+        "TermsCode",
+        "AccountManager_c"
+      ],
+      "excludedColumns": [
+        "TerritoryID",
+        "CustType"
+      ]
+    },
+    {
+      "tableName": "ShipTo",
+      "schemaName": "Erp",
+      "tableType": "Data",
+      "description": "Customer ship-to destination address.",
+      "columns": [
+        { "columnName": "Company", "exclude": false },
+        { "columnName": "CustNum", "exclude": false },
+        { "columnName": "ShipToNum", "exclude": false },
+        { "columnName": "Name", "exclude": false },
+        { "columnName": "Address1", "exclude": false },
+        { "columnName": "Address2", "exclude": false },
+        { "columnName": "City", "exclude": false },
+        { "columnName": "State", "exclude": false },
+        { "columnName": "Zip", "exclude": false },
+        { "columnName": "Country", "exclude": false },
+        { "columnName": "TerritoryID", "exclude": true },
+        { "columnName": "SpecialInstructions_c", "exclude": false }
+      ],
+      "includedColumns": [
+        "Company",
+        "CustNum",
+        "ShipToNum",
+        "Name",
+        "Address1",
+        "Address2",
+        "City",
+        "State",
+        "Zip",
+        "Country",
+        "SpecialInstructions_c"
+      ],
+      "excludedColumns": [
+        "TerritoryID"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipName": "CompanyToShipHead",
+      "parentTable": "Company",
+      "childTable": "ShipHead",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" }
+      ]
+    },
+    {
+      "relationshipName": "ShipHeadToShipDtl",
+      "parentTable": "ShipHead",
+      "childTable": "ShipDtl",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" },
+        { "parentField": "PackNum", "childField": "PackNum" }
+      ]
+    },
+    {
+      "relationshipName": "ShipHeadToCustomer",
+      "parentTable": "ShipHead",
+      "childTable": "Customer",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" },
+        { "parentField": "CustNum", "childField": "CustNum" }
+      ]
+    },
+    {
+      "relationshipName": "ShipHeadToShipTo",
+      "parentTable": "ShipHead",
+      "childTable": "ShipTo",
+      "relationType": "Output",
+      "fields": [
+        { "parentField": "Company", "childField": "Company" },
+        { "parentField": "ShipToCustNum", "childField": "CustNum" },
+        { "parentField": "ShipToNum", "childField": "ShipToNum" }
+      ]
+    }
+  ]
+}
