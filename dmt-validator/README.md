@@ -33,12 +33,52 @@ Options:
 - `--data`: folder holding the six CSVs, `reference/` and `load-plan.csv`.
 - `--out`: output folder (default `reports`).
 - `--date-format`: the `strptime` format every date must match (default `%Y-%m-%d`).
+- `--mode add|update`: the action for the whole run. Required for files without a
+  `LabAction` column (see below).
+- `--before [ENTITY=]FILE`: a before-image, i.e. an export of the records already in
+  the target. It needs at least the entity's key columns. You can repeat it, once per
+  entity. Name the entity (`--before Part=part-export.csv`) or let the file name say
+  it (`Customer-before.csv`).
 
-The script prints the error/warning counts and returns exit code 1 if there is at
-least one ERROR, so it can gate a script.
+The script prints the error, warning and note counts. It returns exit code 1 if there
+is at least one ERROR, or if `--mode` is needed but not given, so it can gate a script.
 
 On the sample files it reports **15 errors, 0 warnings**. Those are the 15 planted
 errors, matched on file, row and check.
+
+## Lab mode and run mode (real client files)
+
+DMT sets Add or Update per import run (`-Add`, `-Update`, PlayLists: 03-dmt.md 2.1,
+2.2), not per row. The validator supports both ways of saying it, file by file:
+
+| | Lab mode | Run mode |
+|---|----------|----------|
+| When | The file has a `LabAction` column (the samples) | The file has no `LabAction` column (real client files) |
+| Action | `LabAction` per row; `--mode` is ignored for that file (an INFO note says so) | `--mode add` or `--mode update` for every row. Without `--mode` the run stops with an error |
+| Key-change check | Each Update row's key is compared with its `LabTargetKey` | `--mode add`: does not apply. `--mode update` with `--before`: an Update row whose key is not in the before-image is reported as `UPDATE_KEY_CHANGE` (a changed key, or a record that does not exist [D21]). `--mode update` without `--before`: **not checked**, and the report carries a `KEY_CHANGE_NOT_CHECKED` note asking for a before-image |
+| Parents for FK checks | Rows in the batch + records targeted by Update rows | Rows in the batch + before-image records (in either mode) |
+
+A real DMT run loads one entity. If you validate several client files in one run
+mode, every file gets the same action. Run the validator once per mode if the batch
+mixes Add and Update files.
+
+```bash
+# client Add files, no lab columns
+python validate_dmt.py --data client-files --mode add
+# client Update file, with a before-image to catch key changes
+python validate_dmt.py --data client-files --mode update --before Part=part-export.csv
+```
+
+### Test run: samples with both lab columns removed
+
+On a copy of `sample-dirty-csvs/` with `LabAction` and `LabTargetKey` dropped from every file:
+
+| Run | Result |
+|-----|--------|
+| no `--mode` | stops: "No LabAction column in ... Give --mode add or --mode update" |
+| `--mode add` | **18 errors, 0 warnings, 6 notes.** 13 of the 15 planted errors are found. The 2 Update key changes cannot be seen without a before-image, as designed. The 5 extra errors (2 `FK_CUSTOMER`, 3 `FK_PART`) are knock-on effects of those 2 renamed keys: without `LabTargetKey`, rows that still use the two original keys have no parent. The 6 notes are one `KEY_CHANGE_NOT_CHECKED` per file |
+| `--mode update` without `--before` | 18 errors, 6 notes saying key changes were not checked |
+| `--mode update --before` (Customer and Part before-images) | 15 errors, 4 notes: the same 15 planted errors as lab mode. Both key changes are caught and the FK knock-ons go away |
 
 ## File layout
 
@@ -55,9 +95,9 @@ errors, matched on file, row and check.
   client's Template Builder (1.1, 1.6).
 - **Lab columns, not DMT columns:** `LabAction` (`Add` or `Update`) and
   `LabTargetKey` (for Update rows, the pipe-separated key of the record being
-  updated, e.g. `MFG01|SABLE`). DMT sets Add/Update per import run (`-Add`,
-  `-Update`, PlayLists: 2.1, 2.2), not per row. Split the file by action and drop
-  both lab columns before loading.
+  updated, e.g. `MFG01|SABLE`). They are optional: without them, use `--mode`
+  (see "Lab mode and run mode"). Split the file by action and drop both lab
+  columns before loading.
 - Row numbers in the report are spreadsheet rows: the header is row 1.
 
 ## What it checks
@@ -68,7 +108,8 @@ errors, matched on file, row and check.
 | `REQUIRED_MISSING` | Blank or absent: ShipTo `CustNumCustID`; Part `PartNum`, `PartDescription`; PartPlant `PrimWhse`, plus `Company`/`PartNum`/`Plant`; OrderHed `Company`, `OrderNum`, `CustomerCustID` | [D10][D11]; [D14][D15]; [D9]; default 54 (banner); [D8], default 57 (banner) |
 | `OPTIONAL_MISSING` (warning) | Part `TypeCode` blank | Default 53: warn, do not fail (banner) |
 | `SHIPTO_DEFAULT_UPDATE` | Update row with blank ShipToNum | [D24] |
-| `UPDATE_KEY_CHANGE` | Update row whose key differs from `LabTargetKey` | Update finds the record by its primary key [D21] (2.3) |
+| `UPDATE_KEY_CHANGE` | Lab mode: Update row whose key differs from `LabTargetKey`. Run mode: Update row whose key is not in the `--before` image | Update finds the record by its primary key [D21] (2.3) |
+| `KEY_CHANGE_NOT_CHECKED` (note) | Run-mode file whose key changes could not be checked (Add run, or Update run with no `--before`) | Lab check |
 | `WHITESPACE` | Leading/trailing spaces, tabs, CR/LF or other hidden characters in any column | [D12] (1.9) |
 | `CUSTNUM_NOT_INT` | Non-integer in `CustNum` (usually a CustID typed into it) | [D10]; [M2][M3], fix-drill defect 2 |
 | `CUSTNUM_MISMATCH` | OrderHed `CustNum` differs from that customer's CustNum in the same Company | Lab check; [D10] |
@@ -104,6 +145,9 @@ REQUIRED check reports them.
   and OrderHed keys are not stated in the reference.
 - **Date format is a lab choice.** No cited source says which date formats DMT accepts.
 - **PARTPLANT_MISSING_FOR_SITE is a data gap, not a predicted error message.**
+- **A before-image comparison cannot tell a changed key from a missing record.**
+  Both show as an Update key that is not in the before-image. Without `--before`,
+  run-mode Update files are not checked for key changes at all.
 - It does not check PartWhse, PartRev, UOM conversions, territories, prices or
   kit line numbering. It does not check that OrderHed loads before OrderDtl,
   because no source states that order.

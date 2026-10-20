@@ -11,8 +11,16 @@ a source ID from docs/reference/03-dmt.md ([D#]) or 02-baq.md ([M#]), an
 approved bucket A default (with the lab banner), or "lab check" where the
 reference has no source.
 
+Two ways to say Add vs Update:
+- Lab mode: the file has a LabAction column (Add/Update per row) and
+  LabTargetKey (key of the record an Update row targets).
+- Run mode: real client files without those columns. --mode add|update sets
+  the action for the whole run, as DMT does per import [D2][D1]. Key changes
+  on Update rows are caught only with a before-image (--before).
+
 Usage:
     python validate_dmt.py --data sample-dirty-csvs --out reports
+    python validate_dmt.py --data client-files --mode update --before Part=part-before.csv
 """
 import argparse
 import html
@@ -137,8 +145,39 @@ def key_text(k):
     return "|".join(k)
 
 
-def load(data_dir, rep):
+def entity_for(path_text):
+    """Entity named by a before-image argument: 'Part=path.csv' or a path whose name starts with the entity."""
+    if "=" in path_text:
+        ent, path_text = path_text.split("=", 1)
+        if ent not in ENTITIES:
+            raise SystemExit(f"--before: unknown entity '{ent}' (use one of {', '.join(ENTITIES)})")
+        return ent, Path(path_text)
+    stem = Path(path_text).stem.lower()
+    for ent in sorted(ENTITIES, key=len, reverse=True):  # PartPlant before Part
+        if stem.startswith(ent.lower()):
+            return ent, Path(path_text)
+    raise SystemExit(f"--before: cannot tell the entity of '{path_text}'; write it as Entity=path")
+
+
+def load_before(items):
+    """Key sets of records already in the target, per entity."""
+    before = {}
+    for item in items or []:
+        ent, path = entity_for(item)
+        if not path.exists():
+            raise SystemExit(f"--before: {path} not found")
+        df = read_csv(path)
+        kc = ENTITIES[ent]["key"]
+        missing = [c for c in kc if c not in df.columns]
+        if missing:
+            raise SystemExit(f"--before: {path} lacks key column(s) {', '.join(missing)} for {ent}")
+        before.setdefault(ent, set()).update(key_of(r, kc) for _, r in df.iterrows())
+    return before
+
+
+def load(data_dir, rep, mode=None, before=None):
     frames = {}
+    needs_mode = []
     for ent, meta in ENTITIES.items():
         p = data_dir / meta["file"]
         if not p.exists():
@@ -148,15 +187,23 @@ def load(data_dir, rep):
             continue
         df = read_csv(p)
         df.index = range(2, len(df) + 2)  # row number as seen in a spreadsheet (header = row 1)
-        if "LabAction" not in df.columns:
-            rep.add("WARNING", "LAB_ACTION_MISSING", meta["file"], 1, "", "LabAction", "",
-                    "No LabAction column; every row is treated as Add.",
-                    "lab check: DMT sets Add/Update per import run [D2][D1], not per row; LabAction is a lab column",
-                    "Add LabAction (Add/Update) and LabTargetKey for Update rows.")
-            df["LabAction"] = "Add"
+        df.attrs["lab"] = "LabAction" in df.columns
+        df.attrs["before"] = (before or {}).get(ent, set())
+        if df.attrs["lab"]:
+            if mode:
+                rep.add("INFO", "MODE_IGNORED", meta["file"], 1, "", "LabAction", "",
+                        f"File has a LabAction column, so per-row actions are used and --mode {mode} is ignored for it.",
+                        "lab check", "Drop LabAction/LabTargetKey to validate the file in run mode.")
+        elif mode:
+            df["LabAction"] = mode.capitalize()
+        else:
+            needs_mode.append(meta["file"])
         if "LabTargetKey" not in df.columns:
             df["LabTargetKey"] = ""
         frames[ent] = df
+    if needs_mode:
+        raise SystemExit("No LabAction column in " + ", ".join(needs_mode) +
+                         ". Give --mode add or --mode update (DMT sets the action per import run).")
     ref = {}
     for name in ("sites", "uom"):
         p = data_dir / "reference" / f"{name}.csv"
@@ -176,8 +223,8 @@ def load(data_dir, rep):
 
 
 def existing_keys(df, cols):
-    """Keys of rows in the file plus keys of records that Update rows target."""
-    keys = set()
+    """Keys of rows in the file, records that Update rows target, and before-image records."""
+    keys = set(df.attrs.get("before", ()))
     for _, r in df.iterrows():
         keys.add(key_of(r, cols))
         if s(r["LabAction"]) == "Update" and s(r["LabTargetKey"]):
@@ -215,6 +262,9 @@ def check_load_order(plan, rep):
 def check_lab_columns(ent, df, rep):
     f = ENTITIES[ent]["file"]
     kc = ENTITIES[ent]["key"]
+    if not df.attrs["lab"]:
+        check_run_mode_keys(ent, df, rep)
+        return
     for i, r in df.iterrows():
         act = s(r["LabAction"])
         k = key_of(r, kc)
@@ -243,6 +293,33 @@ def check_lab_columns(ent, df, rep):
                     "Per cited source [D21], Update finds the record by its primary key, so an Update row cannot carry a new key.",
                     "cited source [D21] (03-dmt.md 2.3)",
                     "Restore the original key on this row. Treat a key rename as a separate, approved step outside this load.")
+
+
+def check_run_mode_keys(ent, df, rep):
+    """Run mode: no LabTargetKey, so key changes need a before-image of the target records."""
+    f = ENTITIES[ent]["file"]
+    kc = ENTITIES[ent]["key"]
+    action = s(df["LabAction"].iloc[0]) if len(df) else ""
+    before = df.attrs["before"]
+    if action != "Update":
+        rep.add("INFO", "KEY_CHANGE_NOT_CHECKED", f, "", "", ", ".join(kc), "",
+                "Run mode Add: the per-row key-change check does not apply. In update mode it needs a before-image file (--before).",
+                "lab check", "None for an Add run.")
+        return
+    if not before:
+        rep.add("INFO", "KEY_CHANGE_NOT_CHECKED", f, "", "", ", ".join(kc), "",
+                "Run mode Update without a before-image: key changes on Update rows were NOT checked.",
+                "cited source [D21]: Update finds the record by its primary key",
+                f"Export the current {ent} records (at least {', '.join(kc)}) and pass --before {ent}=<file>.")
+        return
+    for i, r in df.iterrows():
+        k = key_of(r, kc)
+        if all(k) and k not in before:
+            rep.add("ERROR", "UPDATE_KEY_CHANGE", f, i, key_text(k), ", ".join(kc), key_text(k),
+                    f"Update row key {key_text(k)} is not in the before-image: either a key column was changed or the record does not exist. "
+                    "Per cited source [D21], Update finds the record by its primary key.",
+                    "cited source [D21] (03-dmt.md 2.3); before-image comparison",
+                    "Restore the original key, or move a genuinely new record to an Add run.")
 
 
 def check_required(ent, df, rep):
@@ -476,7 +553,7 @@ body{background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,sans-serif;ma
 main{max-width:1200px;margin:0 auto}h1{font-size:22px;margin:0 0 4px}p.meta{color:var(--muted);margin:0 0 16px}
 table{border-collapse:collapse;width:100%;margin:8px 0 24px}th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 th{font-weight:600;position:sticky;top:0;background:var(--bg)}td.v{font-family:ui-monospace,monospace;white-space:pre-wrap}
-.ERROR{color:var(--err);font-weight:600}.WARNING{color:var(--warn);font-weight:600}.banner{background:var(--chip);padding:2px 6px;border-radius:4px;font-size:12px}
+.ERROR{color:var(--err);font-weight:600}.INFO{color:var(--muted);font-weight:600}.WARNING{color:var(--warn);font-weight:600}.banner{background:var(--chip);padding:2px 6px;border-radius:4px;font-size:12px}
 .scroll{overflow-x:auto}.note{background:var(--chip);padding:12px 16px;border-radius:6px}
 """
 
@@ -486,7 +563,7 @@ def write_reports(rep, out_dir, data_dir):
     df = pd.DataFrame(rep.rows, columns=["Severity", "Check", "File", "Row", "Key", "Column", "Value",
                                          "Finding", "Basis", "Remediation", "Banner"])
     if not df.empty:
-        df["_sev"] = df["Severity"].map({"ERROR": 0, "WARNING": 1})
+        df["_sev"] = df["Severity"].map({"ERROR": 0, "WARNING": 1, "INFO": 2})
         df["_row"] = pd.to_numeric(df["Row"], errors="coerce").fillna(0)
         df = df.sort_values(["_sev", "File", "_row", "Check"]).drop(columns=["_sev", "_row"])
     df.insert(0, "FindingID", [f"F{n:03d}" for n in range(1, len(df) + 1)])
@@ -498,7 +575,7 @@ def write_reports(rep, out_dir, data_dir):
              f"<title>DMT Remediation Report</title><style>{CSS}</style></head><body><main>",
              "<h1>DMT pre-load remediation report</h1>",
              f"<p class='meta'>Source folder: {e(data_dir)} &middot; generated {datetime.now():%Y-%m-%d %H:%M} &middot; "
-             f"{(df['Severity'] == 'ERROR').sum()} errors, {(df['Severity'] == 'WARNING').sum()} warnings</p>",
+             f"{(df['Severity'] == 'ERROR').sum()} errors, {(df['Severity'] == 'WARNING').sum()} warnings, {(df['Severity'] == 'INFO').sum()} notes</p>",
              "<div class='note'><b>What this report does and does not say.</b> It checks the files only. It does not say what DMT "
              "will do with any row. [D#] and [M#] are source IDs in docs/reference/03-dmt.md and 02-baq.md. Rows marked "
              f"<span class='banner'>{e(BANNER)}</span> rest on an approved lab default. \"lab check\" means the reference has no "
@@ -524,11 +601,16 @@ def main(argv=None):
     ap.add_argument("--data", default="sample-dirty-csvs", help="folder with the CSVs, reference/ and load-plan.csv")
     ap.add_argument("--out", default="reports", help="output folder for dmt-remediation.html/.csv")
     ap.add_argument("--date-format", default="%Y-%m-%d", help="strptime format every date must match (default %%Y-%%m-%%d)")
+    ap.add_argument("--mode", choices=["add", "update"],
+                    help="action for the whole run, as DMT sets it per import; required for files without a LabAction column")
+    ap.add_argument("--before", action="append", metavar="[ENTITY=]FILE",
+                    help="before-image of records already in the target (repeatable). In update mode, Update keys are "
+                         "compared against it to catch key changes; in any mode its keys count as existing parents")
     args = ap.parse_args(argv)
 
     data_dir = Path(args.data)
     rep = Report()
-    frames, ref, plan = load(data_dir, rep)
+    frames, ref, plan = load(data_dir, rep, args.mode, load_before(args.before))
     check_load_order(plan, rep)
     for ent, df in frames.items():
         check_lab_columns(ent, df, rep)
@@ -541,7 +623,8 @@ def main(argv=None):
 
     errors = int((df["Severity"] == "ERROR").sum()) if not df.empty else 0
     warnings = int((df["Severity"] == "WARNING").sum()) if not df.empty else 0
-    print(f"{errors} errors, {warnings} warnings")
+    notes = int((df["Severity"] == "INFO").sum()) if not df.empty else 0
+    print(f"{errors} errors, {warnings} warnings, {notes} notes")
     if not df.empty:
         print(df[df["Severity"] == "ERROR"].groupby("Check").size().to_string())
     print(f"Reports: {Path(args.out) / 'dmt-remediation.html'}, {Path(args.out) / 'dmt-remediation.csv'}")
