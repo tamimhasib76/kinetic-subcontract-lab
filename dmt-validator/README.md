@@ -95,7 +95,7 @@ On a copy of `sample-dirty-csvs/` with `LabAction` and `LabTargetKey` dropped fr
   client's Template Builder (1.1, 1.6).
 - **Lab columns, not DMT columns:** `LabAction` (`Add` or `Update`) and
   `LabTargetKey` (for Update rows, the pipe-separated key of the record being
-  updated, e.g. `MFG01|SABLE`). They are optional: without them, use `--mode`
+  updated, e.g. `MFG02|EXAMPLE1`). They are optional: without them, use `--mode`
   (see "Lab mode and run mode"). Split the file by action and drop both lab
   columns before loading.
 - Row numbers in the report are spreadsheet rows: the header is row 1.

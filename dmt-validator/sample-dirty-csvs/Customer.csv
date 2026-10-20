@@ -4,7 +4,7 @@ MFG02,NETTLE,2047,Nettle Industries,Racine,WI,USA,Add,
 MFG02,VECTOR,2002,Vector Fabrication,Dayton,OH,USA,Add,
 MFG02,GROVE,2041,Grove Metals,Wichita,KS,USA,Add,
 MFG02,LARCH,2044,Larch Systems,Peoria,IL,USA,Add,
-MFG01,SABLE-CO,1003,Sable Components,Peoria,IL,USA,Update,MFG01|SABLE
+MFG01,SABLE,1003,Sable Components,Peoria,IL,USA,Add,
 MFG01,KESTRE,1006,Kestre Industries,Wichita,KS,USA,Add,
 MFG02,FALCON,2015,Falcon Systems,Fort Wayne,IN,USA,Add,
 MFG01,HOLLOW,1036,Hollow Systems,Fort Wayne,IN,USA,Add,
@@ -40,7 +40,7 @@ MFG02,KILN,2031,Kiln Systems,Racine,WI,USA,Add,
 MFG01,LUMEN,LUMEN,Lumen Tooling,Akron,OH,USA,Add,
 MFG01,ZEPHYR,1004,Zephyr Machining,Joplin,MO,USA,Add,
 MFG01,HARBOR,1029,Harbor Metals,Erie,PA,USA,Add,
-MFG01,BEACON,1010,Beacon Systems,Racine,WI,USA,Add,
+MFG01,BEACON-CO,1010,Beacon Systems,Racine,WI,USA,Update,MFG01|BEACON
 MFG01,GRANIT,1025,Granit Metals,Racine,WI,USA,Update,MFG01|GRANIT
 MFG01,PRAIRI,1009,Prairi Systems,Dayton,OH,USA,Add,
 MFG02,DUNE,2029,Dune Machining,Peoria,IL,USA,Add,
