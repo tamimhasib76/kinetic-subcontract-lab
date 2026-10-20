@@ -152,13 +152,20 @@ Research date: 2026-10-20. Research method: WebSearch/WebFetch of public pages o
 
 ## Phase 2b fix-drill defects
 
-Seeded BAQ defects for the Phase 2b fix drills. The five existing defects are
-not recorded anywhere in this repository. Items 1–5 are placeholders until the
-project owner supplies them; nothing here defines them.
+Seeded BAQ defects for the Phase 2b fix drills. Items 1–5 were set by the
+project owner on 2026-10-20 (`decisions.md`); item 6 was added at checkpoint 2.
+The defect list is a project decision. The "Source" column only says whether a
+cited source supports the mechanism; where none does, the mechanism is UNVERIFIED
+in this research and rests on the project owner's definition.
+S-IDs are sources in `01-ssrs-forms.md`; D-IDs are sources in `03-dmt.md`.
 
 | # | Defect | Fix | Source |
 |---|--------|-----|--------|
-| 1–5 | (existing five: to be listed by the project owner) | — | — |
+| 1 | **Missing Company join**: a relation omits `Company`, so rows from other companies bleed in. | Add `Company = Company` to every table relation. | Project owner. RDD joins always include Company in cited queries (S19, S17); BAQ-specific UNVERIFIED |
+| 2 | **CustID joined to CustNum**: an int/varchar mismatch. It can cause a non-numeric conversion error, silent wrong matches, or a slow scan. | Join `CustNum` to `CustNum`, or join through Customer to get CustID. | Project owner. CustNum is the internal ID and CustID the editable ID (D10); conversion behavior UNVERIFIED (no T-SQL doc fetched) |
+| 3 | **Release join multiplying rows**: joining OrderRel to OrderDtl returns one row per release, so line totals are counted more than once. | Aggregate OrderRel in a subquery first, or do not join it when only line data is needed. | Project owner. Extra joins duplicated report rows in S17/S13; BAQ-specific UNVERIFIED |
+| 4 | **Criteria on the wrong subquery**: the filter sits on a subquery that does not limit the output. | Move it to Table Criteria / SubQuery Criteria of the subquery that feeds the output. | Project owner; criteria levels in B6, B5 |
+| 5 | **Wrong date field**: `OrderDate` used instead of `NeedByDate`. | Use `NeedByDate` for due-date logic. | Project owner. `NeedByDate` and `OrderDate` both appear as OrderHed DMT columns (D7, D3); field semantics UNVERIFIED |
 | 6 | **Integer division truncation**: a calculated field divides two integers (for example two counts), so 24/28 returns 0. | Cast an operand to DECIMAL before dividing, e.g. `CAST(a AS DECIMAL(7,2)) / CAST(b AS DECIMAL(7,2))`. Guard a zero/NULL denominator with CASE/ISNULL. | M1, B9, B10, B8 |
 
 ---
