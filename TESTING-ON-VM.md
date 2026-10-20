@@ -239,9 +239,92 @@ Inspect each generated PDF on the Windows Server 2016 VM and record Pass or Fail
 
 ---
 
-## 7. Sign-Off & Environmental Certification
+## 7. Step 6: Phase 2b BAQ Drills (`B01`–`B15` & `F01`–`F06`) Expected Results Generation & Grading against `[ErpLab]`
+
+Expected-results CSVs must only be produced by running the answer BAQs against the real `[ErpLab]` database on the SQL Server 2016 VM.
+
+### 7.1 First BAQ Step: Generate Expected CSVs on the VM & Commit to the Vault
+
+After executing `sql/01-erp-app-schema.sql` in Step 1.1, run `engines/baq/make_expected.py` against `[ErpLab]` to execute all 21 answer BAQs (`B01`–`B15` and `F01`–`F06`) and write their CSV outputs into `kinetic-lab-vault/baq/expected/`, then commit and push the vault:
+
+```powershell
+$Env:BAQ_CONNECTION_STRING = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=localhost;DATABASE=ErpLab;Trusted_Connection=yes;"
+$LabRoot   = "C:\kinetic-subcontract-lab"
+$VaultRepo = "C:\kinetic-lab-vault"
+$VaultRoot = "$VaultRepo\baq"
+
+# 1. Execute all 21 answer BAQs against [ErpLab] and write expected/*.csv
+python "$LabRoot\engines\baq\make_expected.py" `
+    --answers-dir "$VaultRoot\answers" `
+    --expected-dir "$VaultRoot\expected"
+
+# 2. Commit and push the generated expected CSVs to kinetic-lab-vault
+git -C $VaultRepo add baq/expected/*.csv
+git -C $VaultRepo commit -m "Add VM-generated BAQ expected-results CSVs (B01-B15, F01-F06)"
+git -C $VaultRepo push origin main
+```
+
+### 7.2 Second BAQ Step: Automated PowerShell Grader Script (Run on SQL Server 2016 VM)
+
+Run the BAQ grader (`engines/baq/cli.py grade`) on all **21 answer BAQs** (`B01`–`B15` and `F01`–`F06`) in `kinetic-lab-vault/baq/answers/` against the generated CSVs in `kinetic-lab-vault/baq/expected/` using the live SQL Server 2016 `[ErpLab]` database. All 21 answer BAQs must exit with code `0` (`Grade: PASS`).
+
+```powershell
+$Env:BAQ_CONNECTION_STRING = "DRIVER={ODBC Driver 17 for SQL Server};SERVER=localhost;DATABASE=ErpLab;Trusted_Connection=yes;"
+$LabRoot   = "C:\kinetic-subcontract-lab"
+$VaultRoot = "C:\kinetic-lab-vault\baq"
+
+$Drills = @(
+    "B01","B02","B03","B04","B05","B06","B07","B08","B09","B10","B11","B12","B13","B14","B15",
+    "F01","F02","F03","F04","F05","F06"
+)
+
+$PassCount = 0
+foreach ($id in $Drills) {
+    $ansJson = Join-Path $VaultRoot "answers\$id.json"
+    $expCsv  = Join-Path $VaultRoot "expected\$id.csv"
+    Write-Host "Grading $id ($ansJson vs $expCsv)..."
+    python "$LabRoot\engines\baq\cli.py" grade $ansJson $expCsv
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  -> [PASS] $id" -ForegroundColor Green
+        $PassCount++
+    } else {
+        Write-Host "  -> [FAIL] $id (exit code $LASTEXITCODE)" -ForegroundColor Red
+    }
+}
+Write-Host "`nSummary: $PassCount / $($Drills.Count) BAQ Answer Drills Passed."
+```
+
+### 7.3 BAQ Grader Verification Matrix (Expect All 21 Answers to PASS)
+
+| Drill ID | BAQ ID | Category | Answer BAQ & Expected CSV (`kinetic-lab-vault/baq/`) | Expected Rows | Expected Result | Pass / Fail |
+| :--- | :--- | :--- | :--- | :---: | :---: | :---: |
+| **`B01`** | `BAQ_B01_CustDirectory` | Single-Table | `answers/B01.json` vs `expected/B01.csv` | 21 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B02`** | `BAQ_B02_PPAPParts` | Single-Table | `answers/B02.json` vs `expected/B02.csv` | 4 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B03`** | `BAQ_B03_OpenOrdersWindow` | Single-Table | `answers/B03.json` vs `expected/B03.csv` | 10 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B04`** | `BAQ_B04_ShipmentManifest` | Single-Table | `answers/B04.json` vs `expected/B04.csv` | 10 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B05`** | `BAQ_B05_OrdersWithCustomer` | Joins | `answers/B05.json` vs `expected/B05.csv` | 15 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B06`** | `BAQ_B06_CustomerShipToSites` | Joins | `answers/B06.json` vs `expected/B06.csv` | 12 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B07`** | `BAQ_B07_OrderLinePartSpecs` | Joins | `answers/B07.json` vs `expected/B07.csv` | 10 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B08`** | `BAQ_B08_PackSlipLines` | Joins | `answers/B08.json` vs `expected/B08.csv` | 5 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B09`** | `BAQ_B09_InvoiceRegister` | Joins | `answers/B09.json` vs `expected/B09.csv` | 5 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B10`** | `BAQ_B10_LineExtendedPrice` | Calculated Fields | `answers/B10.json` vs `expected/B10.csv` | 10 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B11`** | `BAQ_B11_LateOrderAging` | Calculated Fields | `answers/B11.json` vs `expected/B11.csv` | 15 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B12`** | `BAQ_B12_OrderValueTier` | Calculated Fields | `answers/B12.json` vs `expected/B12.csv` | 16 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B13`** | `BAQ_B13_ShipmentFillRatio` | Calculated Fields | `answers/B13.json` vs `expected/B13.csv` | 9 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B14`** | `BAQ_B14_PartOnHandSummary` | `InnerSubQuery` | `answers/B14.json` vs `expected/B14.csv` | 7 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`B15`** | `BAQ_B15_CustomerOpenBacklog` | `InnerSubQuery` | `answers/B15.json` vs `expected/B15.csv` | 10 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`F01`** | `BAQ_F01_CustomerOrders` | Fix Drill | `answers/F01.json` vs `expected/F01.csv` | 10 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`F02`** | `BAQ_F02_RegionalAccountOrders` | Fix Drill | `answers/F02.json` vs `expected/F02.csv` | 12 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`F03`** | `BAQ_F03_StaggeredLineSchedule` | Fix Drill | `answers/F03.json` vs `expected/F03.csv` | 10 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`F04`** | `BAQ_F04_OpenOrdersWithReleases` | Fix Drill | `answers/F04.json` vs `expected/F04.csv` | 5 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`F05`** | `BAQ_F05_LateBacklogAging` | Fix Drill | `answers/F05.json` vs `expected/F05.csv` | 15 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+| **`F06`** | `BAQ_F06_OrderReleaseFulfillment` | Fix Drill | `answers/F06.json` vs `expected/F06.csv` | 20 | `Grade: PASS` | [ ] PASS / [ ] FAIL |
+
+---
+
+## 8. Sign-Off & Environmental Certification
 
 - **VM Tester Name**: `____________________________________`
 - **Execution Date**: `____________________________________`
-- **Result Summary**: `10 of 10 RDLs Verified`
+- **Result Summary**: `10 of 10 RDLs Verified; 21 of 21 BAQ Answer Drills Passed`
 - **Notes / Observations**:

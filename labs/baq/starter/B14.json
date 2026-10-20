@@ -1,0 +1,45 @@
+{
+  "baqId": "BAQ_B14_PartOnHandSummary",
+  "description": "MFG01 parts with aggregated warehouse count and on-hand quantity",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "subqueries": [
+    {
+      "name": "TopLevel",
+      "type": "TopLevel",
+      "tables": [
+        {
+          "table": "Part",
+          "alias": "Part",
+          "schema": "Erp",
+          "criteria": [
+            {
+              "field": "Company",
+              "operator": "=",
+              "value": "MFG01"
+            }
+          ]
+        }
+      ],
+      "displayFields": [
+        {
+          "table": "Part",
+          "field": "Company"
+        },
+        {
+          "table": "Part",
+          "field": "PartNum"
+        },
+        {
+          "table": "Part",
+          "field": "PartDescription"
+        },
+        {
+          "table": "Part",
+          "field": "ClassID"
+        }
+      ]
+    }
+  ]
+}

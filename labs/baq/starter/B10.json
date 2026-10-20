@@ -1,0 +1,55 @@
+{
+  "baqId": "BAQ_B10_LineExtendedPrice",
+  "description": "MFG01 order lines 10061-10065 with calculated LineTotal",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "OrderDtl",
+      "alias": "OrderDtl",
+      "schema": "Erp",
+      "criteria": [
+        {
+          "field": "Company",
+          "operator": "=",
+          "value": "MFG01"
+        },
+        {
+          "field": "OrderNum",
+          "operator": "BETWEEN",
+          "value": [
+            10061,
+            10065
+          ]
+        }
+      ]
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "OrderDtl",
+      "field": "Company"
+    },
+    {
+      "table": "OrderDtl",
+      "field": "OrderNum"
+    },
+    {
+      "table": "OrderDtl",
+      "field": "OrderLine"
+    },
+    {
+      "table": "OrderDtl",
+      "field": "PartNum"
+    },
+    {
+      "table": "OrderDtl",
+      "field": "OrderQty"
+    },
+    {
+      "table": "OrderDtl",
+      "field": "UnitPrice"
+    }
+  ]
+}

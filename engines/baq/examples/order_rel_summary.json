@@ -1,0 +1,70 @@
+{
+  "baqId": "Lab_PartWhseSummary",
+  "description": "Demonstrates TopLevel + InnerSubQuery summarizing PartWhse on-hand quantities per Part",
+  "citations": [
+    "docs/reference/02-baq.md §1.4 [B17] (InnerSubQuery used inside TopLevel)",
+    "docs/reference/02-baq.md §2.2 [B2] (Left outer join)"
+  ],
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "subqueries": [
+    {
+      "name": "WhseSub",
+      "type": "InnerSubQuery",
+      "tables": [
+        {
+          "table": "PartWhse",
+          "alias": "PartWhse",
+          "schema": "Erp"
+        }
+      ],
+      "displayFields": [
+        { "table": "PartWhse", "field": "Company", "groupBy": true },
+        { "table": "PartWhse", "field": "PartNum", "groupBy": true },
+        { "table": "PartWhse", "field": "WarehouseCode", "aggregate": "COUNT", "alias": "WhseCount" },
+        { "table": "PartWhse", "field": "OnHandQty", "aggregate": "SUM", "alias": "TotalOnHand" }
+      ]
+    },
+    {
+      "name": "TopLevel",
+      "type": "TopLevel",
+      "tables": [
+        {
+          "table": "Part",
+          "alias": "Part",
+          "schema": "Erp",
+          "criteria": [
+            { "field": "Company", "operator": "=", "value": "MFG01" }
+          ]
+        },
+        {
+          "table": "WhseSub",
+          "alias": "WhseSub",
+          "isSubQuery": true
+        }
+      ],
+      "relations": [
+        {
+          "parentTable": "Part",
+          "childTable": "WhseSub",
+          "joinType": "left",
+          "fields": [
+            { "parentField": "Company", "childField": "Company" },
+            { "parentField": "PartNum", "childField": "PartNum" }
+          ]
+        }
+      ],
+      "displayFields": [
+        { "table": "Part", "field": "Company" },
+        { "table": "Part", "field": "PartNum" },
+        { "table": "Part", "field": "PartDescription" },
+        { "table": "WhseSub", "field": "WhseCount" },
+        { "table": "WhseSub", "field": "TotalOnHand" }
+      ],
+      "orderBy": [
+        { "table": "Part", "field": "PartNum", "direction": "ASC" }
+      ]
+    }
+  ]
+}

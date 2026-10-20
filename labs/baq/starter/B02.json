@@ -1,0 +1,24 @@
+{
+  "baqId": "BAQ_B02_PPAPParts",
+  "description": "MFG01 PPAP-required parts catalog",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "Part",
+      "alias": "Part",
+      "schema": "Erp"
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "Part",
+      "field": "PartNum"
+    },
+    {
+      "table": "Part",
+      "field": "PartDescription"
+    }
+  ]
+}

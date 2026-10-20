@@ -1,0 +1,46 @@
+{
+  "baqId": "BAQ_B09_InvoiceRegister",
+  "description": "MFG01 AR invoice line register for invoices 90001-90005",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "InvcHead",
+      "alias": "InvcHead",
+      "schema": "Erp"
+    },
+    {
+      "table": "InvcDtl",
+      "alias": "InvcDtl",
+      "schema": "Erp"
+    }
+  ],
+  "relations": [
+    {
+      "parentTable": "InvcHead",
+      "childTable": "InvcDtl",
+      "joinType": "inner",
+      "fields": [
+        {
+          "parentField": "Company",
+          "childField": "Company"
+        },
+        {
+          "parentField": "InvoiceNum",
+          "childField": "InvoiceNum"
+        }
+      ]
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "InvcHead",
+      "field": "Company"
+    },
+    {
+      "table": "InvcHead",
+      "field": "InvoiceNum"
+    }
+  ]
+}

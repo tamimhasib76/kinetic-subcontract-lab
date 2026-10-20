@@ -1,0 +1,24 @@
+{
+  "baqId": "BAQ_B05_OrdersWithCustomer",
+  "description": "MFG01 open orders 10101-10115 with customer ID and name",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "OrderHed",
+      "alias": "OrderHed",
+      "schema": "Erp"
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "OrderHed",
+      "field": "Company"
+    },
+    {
+      "table": "OrderHed",
+      "field": "OrderNum"
+    }
+  ]
+}

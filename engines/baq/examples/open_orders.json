@@ -1,0 +1,89 @@
+{
+  "baqId": "Lab_OpenOrders",
+  "description": "Open sales orders with customer details and DaysLate calculated against FixedLabDate",
+  "citations": [
+    "docs/reference/02-baq.md §3.4 [B18] (<Table>_<Field> and Calculated_<Name> output naming)",
+    "docs/reference/02-baq.md §4.5 & Answer 8 [B11] (DATEDIFF and Constants.Today)",
+    "docs/reference/needs-confirmation.md Approved Default 46 (verbatim calculated field expression)",
+    "sql/00-README.md §2 (Erp.LabConstants FixedLabDate = 2026-10-15)"
+  ],
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "subqueries": [
+    {
+      "name": "TopLevel",
+      "type": "TopLevel",
+      "tables": [
+        {
+          "table": "OrderHed",
+          "alias": "OrderHed",
+          "schema": "Erp",
+          "criteria": [
+            { "field": "Company", "operator": "=", "value": "MFG01" },
+            { "field": "OpenOrder", "operator": "=", "value": true },
+            { "field": "VoidOrder", "operator": "=", "value": false }
+          ]
+        },
+        {
+          "table": "OrderDtl",
+          "alias": "OrderDtl",
+          "schema": "Erp",
+          "criteria": [
+            { "field": "OpenLine", "operator": "=", "value": true },
+            { "field": "VoidLine", "operator": "=", "value": false }
+          ]
+        },
+        {
+          "table": "Customer",
+          "alias": "Customer",
+          "schema": "Erp"
+        }
+      ],
+      "relations": [
+        {
+          "parentTable": "OrderHed",
+          "childTable": "OrderDtl",
+          "joinType": "inner",
+          "fields": [
+            { "parentField": "Company", "childField": "Company" },
+            { "parentField": "OrderNum", "childField": "OrderNum" }
+          ]
+        },
+        {
+          "parentTable": "OrderHed",
+          "childTable": "Customer",
+          "joinType": "inner",
+          "fields": [
+            { "parentField": "Company", "childField": "Company" },
+            { "parentField": "CustNum", "childField": "CustNum" }
+          ]
+        }
+      ],
+      "displayFields": [
+        { "table": "Customer", "field": "CustID" },
+        { "table": "Customer", "field": "Name" },
+        { "table": "OrderHed", "field": "Company" },
+        { "table": "OrderHed", "field": "OrderNum" },
+        { "table": "OrderHed", "field": "CustNum" },
+        { "table": "OrderHed", "field": "OrderDate" },
+        { "table": "OrderHed", "field": "NeedByDate" },
+        { "table": "OrderDtl", "field": "OrderLine" },
+        { "table": "OrderDtl", "field": "PartNum" },
+        { "table": "OrderDtl", "field": "OrderQty" },
+        { "table": "OrderDtl", "field": "UnitPrice" }
+      ],
+      "calculatedFields": [
+        {
+          "name": "DaysLate",
+          "dataType": "int",
+          "expression": "DATEDIFF(day, [OrderHed].[NeedByDate], Constants.Today)"
+        }
+      ],
+      "orderBy": [
+        { "table": "OrderHed", "field": "OrderNum", "direction": "ASC" },
+        { "table": "OrderDtl", "field": "OrderLine", "direction": "ASC" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "baqId": "BAQ_B03_OpenOrdersWindow",
+  "description": "MFG01 open orders in range 10061-10070",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "OrderHed",
+      "alias": "OrderHed",
+      "schema": "Erp",
+      "criteria": [
+        {
+          "field": "Company",
+          "operator": "=",
+          "value": "MFG01"
+        }
+      ]
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "OrderHed",
+      "field": "Company"
+    },
+    {
+      "table": "OrderHed",
+      "field": "OrderNum"
+    }
+  ]
+}

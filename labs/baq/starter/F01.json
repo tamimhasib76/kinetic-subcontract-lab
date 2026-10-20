@@ -1,0 +1,94 @@
+{
+  "baqId": "BAQ_F01_CustomerOrders",
+  "description": "MFG01 open orders 10101-10110 with customer account details",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "OrderHed",
+      "alias": "OrderHed",
+      "schema": "Erp",
+      "criteria": [
+        {
+          "field": "Company",
+          "operator": "=",
+          "value": "MFG01"
+        },
+        {
+          "field": "OpenOrder",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "field": "OrderNum",
+          "operator": "BETWEEN",
+          "value": [
+            10101,
+            10110
+          ]
+        }
+      ]
+    },
+    {
+      "table": "Customer",
+      "alias": "Customer",
+      "schema": "Erp"
+    }
+  ],
+  "relations": [
+    {
+      "parentTable": "OrderHed",
+      "childTable": "Customer",
+      "joinType": "inner",
+      "fields": [
+        {
+          "parentField": "CustNum",
+          "childField": "CustNum"
+        }
+      ]
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "OrderHed",
+      "field": "Company"
+    },
+    {
+      "table": "OrderHed",
+      "field": "OrderNum"
+    },
+    {
+      "table": "OrderHed",
+      "field": "CustNum"
+    },
+    {
+      "table": "Customer",
+      "field": "CustID"
+    },
+    {
+      "table": "Customer",
+      "field": "Name"
+    },
+    {
+      "table": "OrderHed",
+      "field": "PONum"
+    },
+    {
+      "table": "OrderHed",
+      "field": "OrderAmt"
+    }
+  ],
+  "orderBy": [
+    {
+      "table": "OrderHed",
+      "field": "OrderNum",
+      "direction": "ASC"
+    },
+    {
+      "table": "Customer",
+      "field": "CustID",
+      "direction": "ASC"
+    }
+  ]
+}

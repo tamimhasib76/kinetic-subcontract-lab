@@ -1,0 +1,85 @@
+{
+  "baqId": "BAQ_B13_ShipmentFillRatio",
+  "description": "MFG01 shipment line fill ratio for packs 50074-50082",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "ShipDtl",
+      "alias": "ShipDtl",
+      "schema": "Erp",
+      "criteria": [
+        {
+          "field": "Company",
+          "operator": "=",
+          "value": "MFG01"
+        },
+        {
+          "field": "PackNum",
+          "operator": "BETWEEN",
+          "value": [
+            50074,
+            50082
+          ]
+        }
+      ]
+    },
+    {
+      "table": "OrderDtl",
+      "alias": "OrderDtl",
+      "schema": "Erp"
+    }
+  ],
+  "relations": [
+    {
+      "parentTable": "ShipDtl",
+      "childTable": "OrderDtl",
+      "joinType": "inner",
+      "fields": [
+        {
+          "parentField": "Company",
+          "childField": "Company"
+        },
+        {
+          "parentField": "OrderNum",
+          "childField": "OrderNum"
+        },
+        {
+          "parentField": "OrderLine",
+          "childField": "OrderLine"
+        }
+      ]
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "ShipDtl",
+      "field": "Company"
+    },
+    {
+      "table": "ShipDtl",
+      "field": "PackNum"
+    },
+    {
+      "table": "ShipDtl",
+      "field": "OrderNum"
+    },
+    {
+      "table": "ShipDtl",
+      "field": "OrderLine"
+    },
+    {
+      "table": "ShipDtl",
+      "field": "PartNum"
+    },
+    {
+      "table": "ShipDtl",
+      "field": "SellingShippedQty"
+    },
+    {
+      "table": "OrderDtl",
+      "field": "SellingQuantity"
+    }
+  ]
+}

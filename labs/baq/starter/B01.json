@@ -1,0 +1,24 @@
+{
+  "baqId": "BAQ_B01_CustDirectory",
+  "description": "MFG01 Net 30 customer directory",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "Customer",
+      "alias": "Customer",
+      "schema": "Erp"
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "Customer",
+      "field": "Company"
+    },
+    {
+      "table": "Customer",
+      "field": "CustID"
+    }
+  ]
+}

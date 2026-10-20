@@ -1,0 +1,126 @@
+{
+  "baqId": "BAQ_F06_OrderReleaseFulfillment",
+  "description": "MFG01 partly shipped orders 10061-10080 release fulfillment ratio",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "subqueries": [
+    {
+      "name": "RelCounts",
+      "type": "InnerSubQuery",
+      "tables": [
+        {
+          "table": "OrderRel",
+          "alias": "OrderRel",
+          "schema": "Erp"
+        }
+      ],
+      "displayFields": [
+        {
+          "table": "OrderRel",
+          "field": "Company",
+          "groupBy": true
+        },
+        {
+          "table": "OrderRel",
+          "field": "OrderNum",
+          "groupBy": true
+        },
+        {
+          "table": "OrderRel",
+          "field": "OrderRelNum",
+          "aggregate": "COUNT",
+          "alias": "TotalReleases"
+        }
+      ],
+      "calculatedFields": [
+        {
+          "name": "FulfilledReleases",
+          "dataType": "int",
+          "aggregate": true,
+          "expression": "SUM(CASE WHEN [OrderRel].[OpenRelease] = 0 THEN 1 ELSE 0 END)"
+        }
+      ]
+    },
+    {
+      "name": "TopLevel",
+      "type": "TopLevel",
+      "tables": [
+        {
+          "table": "OrderHed",
+          "alias": "OrderHed",
+          "schema": "Erp",
+          "criteria": [
+            {
+              "field": "Company",
+              "operator": "=",
+              "value": "MFG01"
+            },
+            {
+              "field": "OrderNum",
+              "operator": "BETWEEN",
+              "value": [
+                10061,
+                10080
+              ]
+            }
+          ]
+        },
+        {
+          "table": "RelCounts",
+          "alias": "RelCounts",
+          "isSubQuery": true
+        }
+      ],
+      "relations": [
+        {
+          "parentTable": "OrderHed",
+          "childTable": "RelCounts",
+          "joinType": "inner",
+          "fields": [
+            {
+              "parentField": "Company",
+              "childField": "Company"
+            },
+            {
+              "parentField": "OrderNum",
+              "childField": "OrderNum"
+            }
+          ]
+        }
+      ],
+      "displayFields": [
+        {
+          "table": "OrderHed",
+          "field": "Company"
+        },
+        {
+          "table": "OrderHed",
+          "field": "OrderNum"
+        },
+        {
+          "table": "RelCounts",
+          "field": "FulfilledReleases"
+        },
+        {
+          "table": "RelCounts",
+          "field": "TotalReleases"
+        }
+      ],
+      "calculatedFields": [
+        {
+          "name": "FulfilledReleaseRatio",
+          "dataType": "decimal",
+          "expression": "[RelCounts].[FulfilledReleases] / [RelCounts].[TotalReleases]"
+        }
+      ],
+      "orderBy": [
+        {
+          "table": "OrderHed",
+          "field": "OrderNum",
+          "direction": "ASC"
+        }
+      ]
+    }
+  ]
+}

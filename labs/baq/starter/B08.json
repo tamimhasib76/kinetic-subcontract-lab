@@ -1,0 +1,24 @@
+{
+  "baqId": "BAQ_B08_PackSlipLines",
+  "description": "MFG01 shipment lines 50001-50005 with customer details",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "ShipHead",
+      "alias": "ShipHead",
+      "schema": "Erp"
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "ShipHead",
+      "field": "Company"
+    },
+    {
+      "table": "ShipHead",
+      "field": "PackNum"
+    }
+  ]
+}

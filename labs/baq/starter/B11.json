@@ -1,0 +1,74 @@
+{
+  "baqId": "BAQ_B11_LateOrderAging",
+  "description": "MFG01 late open orders 10061-10075 with DaysLate",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "OrderHed",
+      "alias": "OrderHed",
+      "schema": "Erp",
+      "criteria": [
+        {
+          "field": "Company",
+          "operator": "=",
+          "value": "MFG01"
+        },
+        {
+          "field": "OpenOrder",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "field": "OrderNum",
+          "operator": "BETWEEN",
+          "value": [
+            10061,
+            10075
+          ]
+        }
+      ]
+    },
+    {
+      "table": "Customer",
+      "alias": "Customer",
+      "schema": "Erp"
+    }
+  ],
+  "relations": [
+    {
+      "parentTable": "OrderHed",
+      "childTable": "Customer",
+      "joinType": "inner",
+      "fields": [
+        {
+          "parentField": "Company",
+          "childField": "Company"
+        },
+        {
+          "parentField": "CustNum",
+          "childField": "CustNum"
+        }
+      ]
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "OrderHed",
+      "field": "Company"
+    },
+    {
+      "table": "OrderHed",
+      "field": "OrderNum"
+    },
+    {
+      "table": "Customer",
+      "field": "CustID"
+    },
+    {
+      "table": "OrderHed",
+      "field": "NeedByDate"
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "baqId": "BAQ_F03_StaggeredLineSchedule",
+  "description": "MFG01 open order lines for orders 10061-10070 with release count and earliest request date",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "subqueries": [
+    {
+      "name": "TopLevel",
+      "type": "TopLevel",
+      "tables": [
+        {
+          "table": "OrderHed",
+          "alias": "OrderHed",
+          "schema": "Erp",
+          "criteria": [
+            {
+              "field": "Company",
+              "operator": "=",
+              "value": "MFG01"
+            },
+            {
+              "field": "OrderNum",
+              "operator": "BETWEEN",
+              "value": [
+                10061,
+                10070
+              ]
+            }
+          ]
+        },
+        {
+          "table": "OrderDtl",
+          "alias": "OrderDtl",
+          "schema": "Erp",
+          "criteria": [
+            {
+              "field": "OpenLine",
+              "operator": "=",
+              "value": true
+            }
+          ]
+        },
+        {
+          "table": "OrderRel",
+          "alias": "OrderRel",
+          "schema": "Erp"
+        }
+      ],
+      "relations": [
+        {
+          "parentTable": "OrderHed",
+          "childTable": "OrderDtl",
+          "joinType": "inner",
+          "fields": [
+            {
+              "parentField": "Company",
+              "childField": "Company"
+            },
+            {
+              "parentField": "OrderNum",
+              "childField": "OrderNum"
+            }
+          ]
+        },
+        {
+          "parentTable": "OrderDtl",
+          "childTable": "OrderRel",
+          "joinType": "inner",
+          "fields": [
+            {
+              "parentField": "Company",
+              "childField": "Company"
+            },
+            {
+              "parentField": "OrderNum",
+              "childField": "OrderNum"
+            },
+            {
+              "parentField": "OrderLine",
+              "childField": "OrderLine"
+            }
+          ]
+        }
+      ],
+      "displayFields": [
+        {
+          "table": "OrderHed",
+          "field": "Company"
+        },
+        {
+          "table": "OrderHed",
+          "field": "OrderNum"
+        },
+        {
+          "table": "OrderDtl",
+          "field": "OrderLine"
+        },
+        {
+          "table": "OrderDtl",
+          "field": "PartNum"
+        },
+        {
+          "table": "OrderDtl",
+          "field": "OrderQty"
+        },
+        {
+          "table": "OrderDtl",
+          "field": "UnitPrice"
+        },
+        {
+          "table": "OrderRel",
+          "field": "OrderRelNum",
+          "alias": "RelSummary_ReleaseCount"
+        },
+        {
+          "table": "OrderRel",
+          "field": "ReqDate",
+          "alias": "RelSummary_EarliestReqDate"
+        }
+      ],
+      "orderBy": [
+        {
+          "table": "OrderHed",
+          "field": "OrderNum",
+          "direction": "ASC"
+        },
+        {
+          "table": "OrderDtl",
+          "field": "OrderLine",
+          "direction": "ASC"
+        }
+      ]
+    }
+  ]
+}

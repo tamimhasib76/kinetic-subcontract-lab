@@ -1,0 +1,28 @@
+{
+  "baqId": "BAQ_B06_CustomerShipToSites",
+  "description": "MFG01 customers 1-8 with ShipTo addresses",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "Customer",
+      "alias": "Customer",
+      "schema": "Erp"
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "Customer",
+      "field": "Company"
+    },
+    {
+      "table": "Customer",
+      "field": "CustNum"
+    },
+    {
+      "table": "Customer",
+      "field": "CustID"
+    }
+  ]
+}

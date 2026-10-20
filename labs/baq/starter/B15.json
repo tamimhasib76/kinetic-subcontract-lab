@@ -1,0 +1,53 @@
+{
+  "baqId": "BAQ_B15_CustomerOpenBacklog",
+  "description": "MFG01 customers 1-10 with open order count and total open amount",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "subqueries": [
+    {
+      "name": "TopLevel",
+      "type": "TopLevel",
+      "tables": [
+        {
+          "table": "Customer",
+          "alias": "Customer",
+          "schema": "Erp",
+          "criteria": [
+            {
+              "field": "Company",
+              "operator": "=",
+              "value": "MFG01"
+            },
+            {
+              "field": "CustNum",
+              "operator": "BETWEEN",
+              "value": [
+                1,
+                10
+              ]
+            }
+          ]
+        }
+      ],
+      "displayFields": [
+        {
+          "table": "Customer",
+          "field": "Company"
+        },
+        {
+          "table": "Customer",
+          "field": "CustNum"
+        },
+        {
+          "table": "Customer",
+          "field": "CustID"
+        },
+        {
+          "table": "Customer",
+          "field": "Name"
+        }
+      ]
+    }
+  ]
+}

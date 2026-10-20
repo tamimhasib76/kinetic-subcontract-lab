@@ -1,0 +1,126 @@
+{
+  "baqId": "BAQ_F04_OpenOrdersWithReleases",
+  "description": "MFG01 open orders in range 10056-10065 with open release count",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "subqueries": [
+    {
+      "name": "OpenRelSub",
+      "type": "InnerSubQuery",
+      "tables": [
+        {
+          "table": "OrderRel",
+          "alias": "OrderRel",
+          "schema": "Erp",
+          "criteria": [
+            {
+              "field": "OpenRelease",
+              "operator": "=",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "displayFields": [
+        {
+          "table": "OrderRel",
+          "field": "Company",
+          "groupBy": true
+        },
+        {
+          "table": "OrderRel",
+          "field": "OrderNum",
+          "groupBy": true
+        },
+        {
+          "table": "OrderRel",
+          "field": "OrderRelNum",
+          "aggregate": "COUNT",
+          "alias": "OpenRelCount"
+        }
+      ]
+    },
+    {
+      "name": "TopLevel",
+      "type": "TopLevel",
+      "tables": [
+        {
+          "table": "OrderHed",
+          "alias": "OrderHed",
+          "schema": "Erp",
+          "criteria": [
+            {
+              "field": "Company",
+              "operator": "=",
+              "value": "MFG01"
+            },
+            {
+              "field": "OrderNum",
+              "operator": "BETWEEN",
+              "value": [
+                10056,
+                10065
+              ]
+            }
+          ]
+        },
+        {
+          "table": "OpenRelSub",
+          "alias": "OpenRelSub",
+          "isSubQuery": true
+        }
+      ],
+      "relations": [
+        {
+          "parentTable": "OrderHed",
+          "childTable": "OpenRelSub",
+          "joinType": "left",
+          "fields": [
+            {
+              "parentField": "Company",
+              "childField": "Company"
+            },
+            {
+              "parentField": "OrderNum",
+              "childField": "OrderNum"
+            }
+          ]
+        }
+      ],
+      "displayFields": [
+        {
+          "table": "OrderHed",
+          "field": "Company"
+        },
+        {
+          "table": "OrderHed",
+          "field": "OrderNum"
+        },
+        {
+          "table": "OrderHed",
+          "field": "CustNum"
+        },
+        {
+          "table": "OrderHed",
+          "field": "OpenOrder"
+        },
+        {
+          "table": "OrderHed",
+          "field": "OrderAmt"
+        },
+        {
+          "table": "OpenRelSub",
+          "field": "OpenRelCount"
+        }
+      ],
+      "orderBy": [
+        {
+          "table": "OrderHed",
+          "field": "OrderNum",
+          "direction": "ASC"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "baqId": "BAQ_B07_OrderLinePartSpecs",
+  "description": "MFG01 order lines 10061-10065 joined to Part specifications",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "OrderHed",
+      "alias": "OrderHed",
+      "schema": "Erp"
+    },
+    {
+      "table": "OrderDtl",
+      "alias": "OrderDtl",
+      "schema": "Erp"
+    }
+  ],
+  "relations": [
+    {
+      "parentTable": "OrderHed",
+      "childTable": "OrderDtl",
+      "joinType": "inner",
+      "fields": [
+        {
+          "parentField": "Company",
+          "childField": "Company"
+        },
+        {
+          "parentField": "OrderNum",
+          "childField": "OrderNum"
+        }
+      ]
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "OrderHed",
+      "field": "Company"
+    },
+    {
+      "table": "OrderHed",
+      "field": "OrderNum"
+    },
+    {
+      "table": "OrderDtl",
+      "field": "OrderLine"
+    }
+  ]
+}

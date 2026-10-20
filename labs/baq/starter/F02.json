@@ -1,0 +1,105 @@
+{
+  "baqId": "BAQ_F02_RegionalAccountOrders",
+  "description": "MFG01 open orders for commercial customer accounts 10, 12, and 15",
+  "banners": [
+    "Default chosen for the lab, not confirmed against Epicor."
+  ],
+  "tables": [
+    {
+      "table": "Customer",
+      "alias": "Customer",
+      "schema": "Erp",
+      "criteria": [
+        {
+          "field": "Company",
+          "operator": "=",
+          "value": "MFG01"
+        },
+        {
+          "field": "CustID",
+          "operator": "IN",
+          "value": [
+            "10",
+            "12",
+            "15"
+          ]
+        }
+      ]
+    },
+    {
+      "table": "OrderHed",
+      "alias": "OrderHed",
+      "schema": "Erp",
+      "criteria": [
+        {
+          "field": "OpenOrder",
+          "operator": "=",
+          "value": true
+        },
+        {
+          "field": "VoidOrder",
+          "operator": "=",
+          "value": false
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "parentTable": "Customer",
+      "childTable": "OrderHed",
+      "joinType": "inner",
+      "fields": [
+        {
+          "parentField": "Company",
+          "childField": "Company"
+        },
+        {
+          "parentField": "CustID",
+          "childField": "CustNum"
+        }
+      ]
+    }
+  ],
+  "displayFields": [
+    {
+      "table": "Customer",
+      "field": "Company"
+    },
+    {
+      "table": "Customer",
+      "field": "CustID"
+    },
+    {
+      "table": "Customer",
+      "field": "Name"
+    },
+    {
+      "table": "OrderHed",
+      "field": "OrderNum"
+    },
+    {
+      "table": "OrderHed",
+      "field": "CustNum"
+    },
+    {
+      "table": "OrderHed",
+      "field": "PONum"
+    },
+    {
+      "table": "OrderHed",
+      "field": "OrderDate"
+    },
+    {
+      "table": "OrderHed",
+      "field": "OrderAmt"
+    }
+  ],
+  "orderBy": [
+    {
+      "table": "OrderHed",
+      "field": "OrderNum",
+      "direction": "ASC"
+    }
+  ]
+}
