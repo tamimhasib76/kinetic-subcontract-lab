@@ -19,44 +19,49 @@ Triage rules applied:
 
 | Bucket | Count |
 |--------|-------|
-| A — Decide now | 28 |
+| A — Decide now (approved 2026-10-20) | 28 |
 | B — Verify on first job | 45 |
 | C — Out of scope | 8 |
 | Answered | 1 (P1) |
 | **Total** | **82** |
 
-### Bucket A: proposed defaults
+### Bucket A: approved defaults
 
-| # | Question (short) | Proposed default | Reason |
-|---|------------------|------------------|--------|
-| P2 | Base acknowledgment RDD ID is `OrderAck`? | Mock uses `OrderAck`, with a banner. | Only name in sources (S1, S24); matches lab naming. |
-| 7 | "Definition" relation = inner join? | Yes. Mock: Definition = inner join, Output = left outer join. | Most-cited behavior (S14); conservative because it shows row loss. |
-| 9 | RDD column limit ~1,048? | Mock does not enforce a limit. Labs teach "exclude unused columns". | Limit not confirmed; excluding columns is cited good practice (S13). |
-| 14 | RptLabels columns same for every report? | No. Mock gives each report its own `RptLiterals*` set plus `RptLanguageID`. | S19 shows report-specific literal columns. |
-| 15 | RptParameter always has `Company`? | Mock omits it; no lab query may depend on it. | Unconfirmed; safer not to rely on it. |
-| 16 | RptParameter always has `ReportID`? | Mock omits it; no lab query may depend on it. | Unconfirmed; safer not to rely on it. |
-| 18 | `OrderNum` link + `ProjManager_c` → `OrderNum_ProjManager_c`? | Yes. Mock follows `<LinkKey>_<Field>`. | Pattern confirmed (S12, S16); Phase 3 gate. |
-| 19 | Underscores in UD names misparsed? | Mock UD field names use no underscores except the `_c` suffix. | Avoids the reported risk at no cost. |
-| 20 | Un-excluded column appears only in new runs? | Yes. Mock adds the column to staging only for runs generated after the RDD save. | Staging tables are created per run (S13, S14). |
-| 22 | RDL namespace for mock RDLs? | Author mock RDLs in the 2016/01 namespace. Banner: cloud may reject it (S30). | Report Builder 2016 upgrades older files on open (S31), so 2010 cannot be kept. |
-| 25 | PackSlip RDD ID is `PackSlip`? | Mock uses `PackSlip`, with a banner. | Most likely name; only "Pack Slip RDD" is cited (S8). |
-| 35 | `convert(int, datediff(...))` valid? | Yes. Mock treats it as valid T-SQL. | Standard T-SQL; it was entered without a syntax error (B11). |
-| 37 | Reference another calc field: bare name or `Calculated_`? | Labs never reference one calculated field from another; repeat the expression. | Conflicting evidence (B8); avoiding it is conservative. |
-| 38 | Changing only the data type fixes integer division? | No. Answer key requires CAST. | M1: integer/integer truncates; B10. |
-| 39 | `* 1.0` forces decimal division? | Mock accepts it, but the answer key uses CAST. | M1 type precedence supports it; CAST is the cited fix (B9). |
-| 46 | Calc expression inserted verbatim into SELECT? | Yes. Mock inserts the expression text verbatim. | Simplest model consistent with B12 ("enter only the expression"). |
-| 49 | `#` means `<ChildTable>#<Field>`? | Yes. Mock parses headers that way. | Every cited combined header fits (D3, D4, D7, D8). |
-| 53 | `TypeCode` required on Part? | Mock warns if it is missing; it does not fail the row. | Unconfirmed; a warning avoids a false failure. |
-| 54 | `Company`, `PartNum`, `Plant` required on PartPlant? | Yes. Mock fails rows without them. | Table key; conservative. |
-| 55 | PartWhse requires `Company`, `PartNum`, `Plant`, `WarehouseCode`? | Yes. Mock fails rows without them. | Only cited header (D19); conservative. |
-| 57 | `CustomerCustID` required on Sales Order Combined? | Yes. Mock fails rows without it. | DMT labels it required (D8); conservative even though not enforced. |
-| 58 | Customer before ShipTo? | Yes. Mock rejects a ShipTo whose customer is not loaded. | Parent-first rule (D23); `CustNumCustID` lookup (D11). |
-| 59 | Customer and Part before Sales Order Combined? | Yes. Mock rejects orders that reference unloaded records. | Lookups need existing records (D8). |
-| 60 | Part or PartRev first? | Part first. | Two sources (D19, D20) plus the parent-first rule (D23) vs one (D14). |
-| 69 | SSRS own SQL data source on multi-tenant cloud? | No. Treated as blocked. | "Not a supported Epicor configuration" (C1); lab rule 1. |
-| 70 | SQL views as RDD data sources? | No. Not allowed in labs. | No source shows it; conservative. |
-| 71 | Cloud user queries `<Table>_<GUID>` tables directly? | No. Not allowed in cloud labs. | No direct SQL in cloud (C2); conservative. |
-| 75 | SSRS stored-procedure dataset on multi-tenant cloud? | Blocked. | Follows from no direct SQL (C2, C1); lab rule 1. |
+All 28 defaults below were **approved by the project owner on 2026-10-20**
+(`decisions.md`). Banner = **Yes** means the default describes Epicor behavior,
+so the mock must show: **"Default chosen for the lab, not confirmed against
+Epicor."** Banner = No means the default is lab design only.
+
+| # | Question (short) | Approved default | Reason | Banner |
+|---|------------------|------------------|--------|--------|
+| P2 | Base acknowledgment RDD ID is `OrderAck`? | Mock uses `OrderAck`, with a banner. | Only name in sources (S1, S24); matches lab naming. | Yes |
+| 7 | "Definition" relation = inner join? | Yes. Mock: Definition = inner join, Output = left outer join. | Most-cited behavior (S14); conservative because it shows row loss. | Yes |
+| 9 | RDD column limit ~1,048? | Mock does not enforce a limit. Labs teach "exclude unused columns". | Limit not confirmed; excluding columns is cited good practice (S13). | Yes |
+| 14 | RptLabels columns same for every report? | No. Mock gives each report its own `RptLiterals*` set plus `RptLanguageID`. | S19 shows report-specific literal columns. | Yes |
+| 15 | RptParameter always has `Company`? | Mock omits it; no lab query may depend on it. | Unconfirmed; safer not to rely on it. | Yes |
+| 16 | RptParameter always has `ReportID`? | Mock omits it; no lab query may depend on it. | Unconfirmed; safer not to rely on it. | Yes |
+| 18 | `OrderNum` link + `ProjManager_c` → `OrderNum_ProjManager_c`? | Yes. Mock follows `<LinkKey>_<Field>`. | Pattern confirmed (S12, S16); Phase 3 gate. | Yes |
+| 19 | Underscores in UD names misparsed? | Mock UD field names use no underscores except the `_c` suffix. | Avoids the reported risk at no cost. | No (lab design) |
+| 20 | Un-excluded column appears only in new runs? | Yes. Mock adds the column to staging only for runs generated after the RDD save. | Staging tables are created per run (S13, S14). | Yes |
+| 22 | RDL namespace for mock RDLs? | Author mock RDLs in the 2016/01 namespace. Banner: cloud may reject it (S30). | Report Builder 2016 upgrades older files on open (S31), so 2010 cannot be kept. | No (lab design; item 22 keeps its own cloud banner) |
+| 25 | PackSlip RDD ID is `PackSlip`? | Mock uses `PackSlip`, with a banner. | Most likely name; only "Pack Slip RDD" is cited (S8). | Yes |
+| 35 | `convert(int, datediff(...))` valid? | Yes. Mock treats it as valid T-SQL. | Standard T-SQL; it was entered without a syntax error (B11). | Yes |
+| 37 | Reference another calc field: bare name or `Calculated_`? | Labs never reference one calculated field from another; repeat the expression. | Conflicting evidence (B8); avoiding it is conservative. | No (lab design) |
+| 38 | Changing only the data type fixes integer division? | No. Answer key requires CAST. | M1: integer/integer truncates; B10. | Yes |
+| 39 | `* 1.0` forces decimal division? | Mock accepts it, but the answer key uses CAST. | M1 type precedence supports it; CAST is the cited fix (B9). | Yes |
+| 46 | Calc expression inserted verbatim into SELECT? | Yes. Mock inserts the expression text verbatim. | Simplest model consistent with B12 ("enter only the expression"). | Yes |
+| 49 | `#` means `<ChildTable>#<Field>`? | Yes. Mock parses headers that way. | Every cited combined header fits (D3, D4, D7, D8). | Yes |
+| 53 | `TypeCode` required on Part? | Mock warns if it is missing; it does not fail the row. | Unconfirmed; a warning avoids a false failure. | Yes |
+| 54 | `Company`, `PartNum`, `Plant` required on PartPlant? | Yes. Mock fails rows without them. | Table key; conservative. | Yes |
+| 55 | PartWhse requires `Company`, `PartNum`, `Plant`, `WarehouseCode`? | Yes. Mock fails rows without them. | Only cited header (D19); conservative. | Yes |
+| 57 | `CustomerCustID` required on Sales Order Combined? | Yes. Mock fails rows without it. | DMT labels it required (D8); conservative even though not enforced. | Yes |
+| 58 | Customer before ShipTo? | Yes. Mock rejects a ShipTo whose customer is not loaded. | Parent-first rule (D23); `CustNumCustID` lookup (D11). | Yes |
+| 59 | Customer and Part before Sales Order Combined? | Yes. Mock rejects orders that reference unloaded records. | Lookups need existing records (D8). | Yes |
+| 60 | Part or PartRev first? | Part first. | Two sources (D19, D20) plus the parent-first rule (D23) vs one (D14). | Yes |
+| 69 | SSRS own SQL data source on multi-tenant cloud? | No. Treated as blocked. | "Not a supported Epicor configuration" (C1); lab rule 1. | Yes |
+| 70 | SQL views as RDD data sources? | No. Not allowed in labs. | No source shows it; conservative. | Yes |
+| 71 | Cloud user queries `<Table>_<GUID>` tables directly? | No. Not allowed in cloud labs. | No direct SQL in cloud (C2); conservative. | Yes |
+| 75 | SSRS stored-procedure dataset on multi-tenant cloud? | Blocked. | Follows from no direct SQL (C2, C1); lab rule 1. | Yes |
 
 ## Standing first-ticket questions (ask on every new client)
 

@@ -40,6 +40,8 @@ Research date: 2026-10-20. Research method: WebSearch/WebFetch of public pages o
 | B18 | Adding new field from BAQ to SSRS | https://epiusers.help/t/adding-new-field-from-baq-to-ssrs/107769 | 2023-10-06 to 2023-10-12 | 10.2 |
 | B19 | Dates, Times, DateTimes, SQL, LINQ, and the Usual Confusion | https://www.epiusers.help/t/dates-times-datetimes-sql-linq-and-the-usual-confusion/135539 | 2026-06-17 | none. **The author says AI wrote much of the post and not every fact was tested.** Used only as supporting context, never as sole support. |
 | M1 | / (Division) (Transact-SQL) — Microsoft Learn | https://learn.microsoft.com/en-us/sql/t-sql/language-elements/divide-transact-sql?view=sql-server-ver16 | ms.date 2017-03-15 (page updated 2026-10-19) | n/a (Microsoft doc) |
+| M2 | Data Type Precedence (Transact-SQL) — Microsoft Learn | https://learn.microsoft.com/en-us/sql/t-sql/data-types/data-type-precedence-transact-sql?view=sql-server-ver16 | ms.date 2026-10-13 | n/a (Microsoft doc) |
+| M3 | Database Engine events and errors (0 to 999) — Microsoft Learn (error 245) | https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors-0-to-999?view=sql-server-ver16 | ms.date 2026-09-15 | n/a (Microsoft doc) |
 
 ---
 
@@ -162,10 +164,10 @@ S-IDs are sources in `01-ssrs-forms.md`; D-IDs are sources in `03-dmt.md`.
 | # | Defect | Fix | Source |
 |---|--------|-----|--------|
 | 1 | **Missing Company join**: a relation omits `Company`, so rows from other companies bleed in. | Add `Company = Company` to every table relation. | Project owner. RDD joins always include Company in cited queries (S19, S17); BAQ-specific UNVERIFIED |
-| 2 | **CustID joined to CustNum**: an int/varchar mismatch. It can cause a non-numeric conversion error, silent wrong matches, or a slow scan. | Join `CustNum` to `CustNum`, or join through Customer to get CustID. | Project owner. CustNum is the internal ID and CustID the editable ID (D10); conversion behavior UNVERIFIED (no T-SQL doc fetched) |
+| 2 | **CustID joined to CustNum**: an int/varchar mismatch. It can cause a non-numeric conversion error, silent wrong matches, or a slow scan. | Join `CustNum` to `CustNum`, or join through Customer to get CustID. | CONFIRMED. M2: "the data type with the lower precedence is first converted to the data type with the higher precedence". `int` (17) outranks `varchar` (28), so the varchar side is converted to int. M3: error 245, severity 16, "Conversion failed when converting the %ls value '%.*ls' to data type %ls." CustNum is the internal ID and CustID the editable ID (D10). The wrong-match and slow-scan outcomes follow from that conversion; they are not cited separately. |
 | 3 | **Release join multiplying rows**: joining OrderRel to OrderDtl returns one row per release, so line totals are counted more than once. | Aggregate OrderRel in a subquery first, or do not join it when only line data is needed. | Project owner. Extra joins duplicated report rows in S17/S13; BAQ-specific UNVERIFIED |
 | 4 | **Criteria on the wrong subquery**: the filter sits on a subquery that does not limit the output. | Move it to Table Criteria / SubQuery Criteria of the subquery that feeds the output. | Project owner; criteria levels in B6, B5 |
-| 5 | **Wrong date field**: `OrderDate` used instead of `NeedByDate`. | Use `NeedByDate` for due-date logic. | Project owner. `NeedByDate` and `OrderDate` both appear as OrderHed DMT columns (D7, D3); field semantics UNVERIFIED |
+| 5 | **Wrong date field**: `OrderDate` used instead of `NeedByDate`. | Use the date the ticket names (`NeedByDate`). | Defined by ticket spec, not an Epicor rule. The drill's ticket text states which date the report must use. Both columns exist on OrderHed DMT templates (D7, D3). |
 | 6 | **Integer division truncation**: a calculated field divides two integers (for example two counts), so 24/28 returns 0. | Cast an operand to DECIMAL before dividing, e.g. `CAST(a AS DECIMAL(7,2)) / CAST(b AS DECIMAL(7,2))`. Guard a zero/NULL denominator with CASE/ISNULL. | M1, B9, B10, B8 |
 
 ---
